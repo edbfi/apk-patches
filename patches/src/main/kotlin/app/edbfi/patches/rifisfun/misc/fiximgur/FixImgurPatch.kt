@@ -55,6 +55,8 @@ val fixImgurPatch =
             val parser = albumParserMethod()
             val task = parser.definingClass
             val proxyUrl = proxyAlbumUrlMethod()
+            // The task is an inner class of the viewer's model, which builds the proxy URL. This relies on R8 keeping
+            // the `Outer$Inner` form of inner class names, an obfuscation detail: should that change, this fails here.
             if (!task.startsWith(proxyUrl.definingClass.removeSuffix(";") + "$")) {
                 throw PatchException("The album parser $task isn't in the class of the proxy URL, ${proxyUrl.definingClass}")
             }
