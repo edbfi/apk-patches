@@ -74,6 +74,8 @@ val fixImgurPatch =
                 if (cover.getInstruction<BuilderInstruction>(0).location.labels.isNotEmpty()) throw PatchException("A branch lands on the start of ${cover.name}")
             }
 
+            // Assembled before the first change: it checks what it built and can throw.
+            val override = albumBackground(task, background.name, engine, requestUri.name, engineParser.name)
             val setClientId = clientIdMethod().returnString(clientId!!)
             val enable = extensionSwitch("Imgur")
 
@@ -88,7 +90,6 @@ val fixImgurPatch =
                     """,
                 )
             }
-            val override = albumBackground(task, background.name, engine, requestUri.name, engineParser.name)
             // The dex writer reads every method; the virtual set may already be cached apart from it.
             classDefs.getOrReplaceMutable(taskClass).apply {
                 methods.add(override)
