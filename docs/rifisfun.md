@@ -19,5 +19,5 @@ Patches for rif is fun for Reddit. To install them, see the [README](../README.m
 - **Spoof client** uses [RedReader](https://github.com/QuantumBadger/RedReader)'s public Reddit client by default,
   whose rate limit every RedReader user shares. If Reddit stops accepting it, set all three options to another
   "installed app" client: `OAuth client ID`, `Redirect URI` (the one registered for that ID) and `User-Agent` (the one
-  that app sends). Logged out, the app then gets a new token by itself; a logged-in account asks you to log in again
-  once its token runs out.
+  that app sends). Logged out, the app then gets a new token by itself; a logged-in account's token belongs to the old
+  client, so remove the account and add it again.
