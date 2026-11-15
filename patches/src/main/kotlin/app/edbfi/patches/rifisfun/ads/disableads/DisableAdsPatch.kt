@@ -77,7 +77,7 @@ private fun feedAdCheckResult(method: MutableMethod): Pair<Int, Int> {
     val code = method.instructions.toList()
     val row = code.indices.singleOrNull { code[it].opcode == Opcode.NEW_INSTANCE && code[it].type == NATIVE_AD_THING }
         ?: throw PatchException("Expected one new $NATIVE_AD_THING in ${method.name}")
-    val thisRegister = (method.implementation?.registerCount ?: 0) - parameterRegisters(method)
+    val thisRegister = localRegisters(method)
     val checks = (0 until row - 2).filter { i ->
         val call = code[i]
         val reference = call.methodReference
