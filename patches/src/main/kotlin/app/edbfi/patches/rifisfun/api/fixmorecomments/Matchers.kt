@@ -18,8 +18,8 @@ private const val RESPONSE = "Lcom/andrewshu/android/reddit/comments/more/MoreCo
 
 /**
  * Fails unless the app still loads more comments the way the extension answers: one loader, R8-renamed, that posts
- * the form `link_id`, `children` and `sort` to `api/morechildren.json` and parses the reply as `MoreCommentsResponse`
- * (a kept JSON model).
+ * the form `link_id`, `id`, `api_type`, `children` and `sort` to `api/morechildren.json` and parses the reply as
+ * `MoreCommentsResponse` (a kept JSON model).
  */
 internal fun BytecodePatchContext.checkMoreCommentsRequest() {
     val form =
