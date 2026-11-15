@@ -36,7 +36,7 @@ internal val extensionPatch =
                     returnType("V")
                     parameterTypes()
                 }
-            onCreate.addInstructions(0, "invoke-static { p0 }, $EXTENSION/App;->init(Landroid/app/Application;)V")
+            onCreate.addInstructions(0, "invoke-static/range { p0 .. p0 }, $EXTENSION/App;->init(Landroid/app/Application;)V")
         }
     }
 

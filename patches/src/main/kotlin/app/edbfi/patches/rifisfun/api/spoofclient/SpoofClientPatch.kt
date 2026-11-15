@@ -112,7 +112,7 @@ val spoofClientPatch =
             appTokenCheck.addInstructions(
                 0,
                 """
-                    invoke-static { p0 }, $SPOOF->usesAppToken(Landroid/net/Uri;)Z
+                    invoke-static/range { p0 .. p0 }, $SPOOF->usesAppToken(Landroid/net/Uri;)Z
                     move-result p0
                     return p0
                 """,
