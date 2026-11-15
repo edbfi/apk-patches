@@ -51,10 +51,16 @@ public final class Http {
 
     /** Sends one request, following redirects only for GET. A null body sends none. */
     public static Reply send(String method, String url, Map<String, String> headers, byte[] body) throws IOException {
+        return send(method, url, headers, body, "GET".equals(method));
+    }
+
+    /** Sends one request; a redirect that isn't followed comes back as the reply. */
+    static Reply send(String method, String url, Map<String, String> headers, byte[] body, boolean followRedirects)
+            throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
         try {
             connection.setRequestMethod(method);
-            connection.setInstanceFollowRedirects("GET".equals(method));
+            connection.setInstanceFollowRedirects(followRedirects);
             connection.setConnectTimeout(TIMEOUT_MS);
             connection.setReadTimeout(TIMEOUT_MS);
             connection.setUseCaches(false);

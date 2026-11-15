@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.TreeMap;
 import org.junit.After;
 import org.junit.Test;
 
@@ -189,6 +190,24 @@ public class RequestHookTest {
         } catch (IOException expected) {
             assertTrue(expected.getMessage().contains("example.org"));
         }
+    }
+
+    @Test
+    public void resolvesRedirectsForRechecking() throws IOException {
+        String from = "https://oauth.reddit.com/comments/abc.json";
+        assertNull(RequestHook.redirectTarget(from, reply(200, "https://example.org/")));
+        assertNull(RequestHook.redirectTarget(from, reply(302, null)));
+        assertEquals("https://oauth.reddit.com/r/x/comments/abc.json",
+                RequestHook.redirectTarget(from, reply(302, "/r/x/comments/abc.json")));
+        String away = RequestHook.redirectTarget(from, reply(307, "https://example.org/steal"));
+        assertEquals("https://example.org/steal", away);
+        assertFalse(RequestHook.isRedditApi(away));
+    }
+
+    private static Http.Reply reply(int status, String location) {
+        Map<String, String> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        if (location != null) headers.put("location", location);
+        return new Http.Reply(status, new byte[0], headers);
     }
 
     private static InputStream stream(String text) {

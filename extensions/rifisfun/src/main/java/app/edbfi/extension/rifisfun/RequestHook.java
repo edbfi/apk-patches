@@ -84,14 +84,35 @@ public final class RequestHook {
 
         /**
          * A GET of another Reddit API URL with this request's token and Reddit's User-Agent. Throws for any other URL,
-         * so the token never goes elsewhere.
+         * and for a redirect to one, so the token never goes elsewhere.
          */
         public Http.Reply get(String url) throws IOException {
-            if (!isRedditApi(url)) throw new IOException("Not a Reddit API URL: " + url);
             Map<String, String> headers = new LinkedHashMap<>();
             if (token != null) headers.put("Authorization", "bearer " + token);
             headers.put("User-Agent", SpoofClient.redditUserAgent());
-            return Http.send("GET", url, headers, null);
+            for (int hop = 0; hop <= MAX_REDIRECTS; hop++) {
+                if (!isRedditApi(url)) throw new IOException("Not a Reddit API URL: " + url);
+                Http.Reply reply = Http.send("GET", url, headers, null, false);
+                String target = redirectTarget(url, reply);
+                if (target == null) return reply;
+                url = target;
+            }
+            throw new IOException("Too many redirects, last to " + url);
+        }
+    }
+
+    static final int MAX_REDIRECTS = 5;
+
+    /** Where a redirect reply to {@code url} points, or null for a reply that isn't a redirect. */
+    static String redirectTarget(String url, Http.Reply reply) throws IOException {
+        String location = reply.headers.get("Location");
+        boolean redirect = reply.status == 301 || reply.status == 302 || reply.status == 303
+                || reply.status == 307 || reply.status == 308;
+        if (!redirect || location == null) return null;
+        try {
+            return new URI(url).resolve(location.trim()).toString();
+        } catch (URISyntaxException | IllegalArgumentException error) {
+            throw new IOException("Bad redirect from " + url, error);
         }
     }
 
