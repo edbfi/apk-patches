@@ -26,6 +26,7 @@ public final class RequestHook {
     /** One line per feature, for example {@code Galleries.HANDLER,}. A request goes to the first handler that takes it. */
     private static final Handler[] HANDLERS = {
         MoreComments.HANDLER,
+        Galleries.HANDLER,
     };
 
     /** The request the current thread's engine call is sending, while a handler has it. */
