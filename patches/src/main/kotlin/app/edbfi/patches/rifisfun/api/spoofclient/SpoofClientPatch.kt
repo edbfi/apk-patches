@@ -183,6 +183,8 @@ private fun MutableMethod.keepAppTokenOfThisClient(): Edit {
     val returnIndex = returns.singleOrNull() ?: throw PatchException("Expected one return in $name, found ${returns.size}")
     val returned = getInstruction<OneRegisterInstruction>(returnIndex).registerA
     if (listOf(token, expiryRegister + 1, returned).any { it > 15 }) throw PatchException("$name uses registers above v15")
+    // The expiry's move-result-wide writes both halves of the pair; the token must survive it to reach the hook.
+    if (token == expiryRegister || token == expiryRegister + 1) throw PatchException("$name reads its expiry into the token's register")
     checkNoBranchTo(expiry + 1)
     checkNoBranchTo(returnIndex)
     return Edit(2) {
