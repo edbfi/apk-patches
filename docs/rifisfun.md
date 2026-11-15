@@ -14,6 +14,7 @@ Patches for rif is fun for Reddit. To install them, see the [README](../README.m
 | --- | --- | --- |
 | Fix load more comments | Fixes "load more comments" not loading further comments. | On |
 | Spoof client | Restores login and browsing by using another app's Reddit OAuth client. | On |
+| Fix YouTube player | Fixes the built-in YouTube player, which showed a black screen and error code 0. | On |
 
 ## Options
 
