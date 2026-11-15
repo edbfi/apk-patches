@@ -19,8 +19,9 @@ import java.util.Map;
  * <p>A feature adds one {@link Handler} to {@link #HANDLERS}; its patch depends on the request hook patch and turns
  * the handler on. With no handler on, every request and reply passes through unchanged.
  *
- * <p>Only Reddit's API goes through the engine. Imgur, Redgifs and other hosts are requested with the app's OkHttp
- * clients directly and need a hook of their own where the app builds the request.
+ * <p>Reddit's API goes through the engine, and so did the Imgur album viewer, which the Fix Imgur patch takes off it.
+ * Redgifs and other hosts are requested with the app's OkHttp clients directly and need a hook of their own where the
+ * app builds the request.
  */
 public final class RequestHook {
     /** One line per feature, for example {@code Galleries.HANDLER,}. A request goes to the first handler that takes it. */

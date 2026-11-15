@@ -26,7 +26,7 @@
 
 | App | Package | Patches |
 | --- | --- | --- |
-| [rif is fun](docs/rifisfun.md) | `com.andrewshu.android.reddit` | 7 |
+| [rif is fun](docs/rifisfun.md) | `com.andrewshu.android.reddit` | 8 |
 | [Sync for Reddit](docs/syncforreddit.md) | `com.laurencedawson.reddit_sync` | 15 |
 
 Each app's page lists its patches, their options and known issues, and the app version they were tested on. Patch
