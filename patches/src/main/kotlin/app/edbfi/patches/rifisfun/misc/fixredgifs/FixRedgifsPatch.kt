@@ -23,8 +23,11 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 
 private const val REDGIFS = "$EXTENSION/Redgifs;"
 
@@ -70,7 +73,7 @@ private fun BytecodePatchContext.useTemporaryTokens(
     // The lookup keeps the status and reads the flag before trying again; the token request sets the flag.
     val keepsStatus = send.instructions.any { it.opcode == Opcode.IPUT && it.fieldReference?.name == status.name && it.fieldReference?.definingClass == lookup }
     val readsFlag = send.instructions.any { it.opcode == Opcode.IGET_BOOLEAN && it.fieldReference?.name == renewed.name && it.fieldReference?.definingClass == lookup }
-    val setsFlag = tokenRequest.instructions.any { it.opcode == Opcode.IPUT_BOOLEAN && it.fieldReference?.name == renewed.name }
+    val setsFlag = tokenRequest.instructions.any { it.opcode == Opcode.IPUT_BOOLEAN && it.fieldReference?.name == renewed.name && it.fieldReference?.definingClass == lookup }
     if (!keepsStatus || !readsFlag || !setsFlag) throw PatchException("The Redgifs lookup no longer keeps the status and new-token flag the token getter uses")
     // Two locals and this, all within v0-v15 for iget and iput.
     val registers = getter.implementation!!.registerCount
@@ -136,6 +139,8 @@ private fun BytecodePatchContext.unpinRedgifs(): Edit {
             val (host, pins) = pinner.hostAndPins(index)
             if (host == pins) throw PatchException("${pinner.name} passes one register as both host and pins at $index")
             if (pinner.getInstruction<BuilderInstruction>(index).location.labels.isNotEmpty()) throw PatchException("A branch lands on instruction $index of ${pinner.name}")
+            // The insert leaves the filtered pins in the array's register: nothing after the call may read the original.
+            pinner.checkUnreadAfter(index, pins)
             Triple(index, host, pins)
         }
     return Edit(inserts.size) {
@@ -151,6 +156,49 @@ private fun BytecodePatchContext.unpinRedgifs(): Edit {
             )
         }
     }
+}
+
+/**
+ * Fails unless [register] is written before it is read again on the straight-line code after [index]. Any branch
+ * before that fails too, rather than follow it.
+ */
+private fun MutableMethod.checkUnreadAfter(
+    index: Int,
+    register: Int,
+) {
+    for (at in index + 1 until instructions.size) {
+        val instruction = getInstruction<Instruction>(at)
+        val destination = (instruction as? OneRegisterInstruction)?.registerA.takeIf { instruction.opcode.setsRegister() }
+        val written =
+            when {
+                destination == null -> emptySet()
+                instruction.opcode.setsWideRegister() -> setOf(destination, destination + 1)
+                else -> setOf(destination)
+            }
+        val read = instruction.registersRead(destination != null)
+        if (register in read) throw PatchException("$name reads v$register again at $at after adding its pins at $index")
+        if (register in written) return
+        if (!instruction.opcode.canContinue()) return
+        if (instruction is OffsetInstruction && instruction.opcode != Opcode.FILL_ARRAY_DATA) {
+            throw PatchException("$name branches at $at before v$register, the pins added at $index, is written again")
+        }
+    }
+}
+
+/** The registers the instruction reads: all it names but its destination, both halves of a wide value included. */
+private fun Instruction.registersRead(setsA: Boolean): Set<Int> {
+    val read =
+        when (this) {
+            is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+            is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
+            is ThreeRegisterInstruction -> listOfNotNull(registerA.takeUnless { setsA }, registerB, registerC)
+            is TwoRegisterInstruction -> listOfNotNull(registerA.takeUnless { setsA }, registerB)
+            is OneRegisterInstruction -> listOfNotNull(registerA.takeUnless { setsA })
+            else -> emptyList()
+        }
+    // A wide operand names the first of two registers.
+    val wide = listOf("WIDE", "LONG", "DOUBLE").any { it in opcode.name }
+    return (if (wide) read.flatMap { listOf(it, it + 1) } else read).toSet()
 }
 
 /** The registers of the host and pins of the `add(pattern, pins)` call at [index]. */
