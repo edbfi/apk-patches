@@ -37,8 +37,9 @@ public final class ShareLinks {
     private ShareLinks() {}
 
     /**
-     * Called first by the app's in-app link opener with the link and the context it opens from (null for the
-     * application's). Returns true when it took the link over.
+     * Called first by the app's in-app link opener with the link and the context it opens from. Returns true when it
+     * took the link over. A caller without a context (a detached fragment) passes null; that link is left to the
+     * app, which opens it with the application's context as before.
      */
     public static boolean open(String url, Context context) {
         if (context == null || !isShareLink(url)) return false;
