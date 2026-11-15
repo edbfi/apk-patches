@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 package app.edbfi.patches.syncforreddit.misc.enableultra
 
+import app.edbfi.patches.shared.isCallTo
 import app.edbfi.patches.shared.isDeclaredIn
 import app.edbfi.patches.shared.uniqueMethod
 import app.revanced.com.android.tools.smali.dexlib2.mutable.MutableMethod
@@ -53,13 +54,6 @@ private fun purchaseCheckCalledBy(method: Method): MethodReference? {
         it.definingClass == method.definingClass && it.name != method.name && it.returnType == "Z" && it.parameterTypes.isEmpty()
     }
 }
-
-/** Whether [reference] names [method]. */
-internal fun isCallTo(
-    reference: MethodReference?,
-    method: Method,
-) = reference != null && reference.definingClass == method.definingClass && reference.name == method.name &&
-    reference.parameterTypes == method.parameterTypes && reference.returnType == method.returnType
 
 /** The `()Z` getter of a Firebase Remote Config flag, which reads the flag's [key] from the app's copy. */
 internal fun BytecodePatchContext.remoteFlag(key: String) = uniqueMethod("the \"$key\" flag in RemoteConfigHelper", key) {

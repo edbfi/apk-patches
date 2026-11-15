@@ -9,6 +9,7 @@ import app.revanced.patcher.patch.BytecodePatchContext
 import app.revanced.patcher.patch.PatchException
 import app.revanced.patcher.predicate
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /**
  * The one method matching [build], made mutable. Throws [PatchException] when no method or more than one
@@ -38,3 +39,10 @@ internal fun BytecodePatchContext.isDeclaredIn(
     method: Method,
     sourceFile: String,
 ): Boolean = classDefs[method.definingClass]?.sourceFile == sourceFile
+
+/** Whether [reference] names [method]: same class, name, parameter types and return type. */
+internal fun isCallTo(
+    reference: MethodReference?,
+    method: MethodReference,
+) = reference != null && reference.definingClass == method.definingClass && reference.name == method.name &&
+    reference.parameterTypes.map { it.toString() } == method.parameterTypes.map { it.toString() } && reference.returnType == method.returnType

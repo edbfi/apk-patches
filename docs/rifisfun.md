@@ -13,6 +13,7 @@ Patches for rif is fun for Reddit. To install them, see the [README](../README.m
 | Patch | What it does | Default |
 | --- | --- | --- |
 | Disable ads | Removes ads and the ad consent form, and keeps the ad SDKs from starting. | On |
+| Enable golden platinum | Enables the golden platinum features that work without rif's servers, and makes the ads setting switch only ads. | On |
 | Fix /s/ links | Opens Reddit share links (/s/) as the post they point to, from the app and from other apps. | On |
 | Fix galleries | Fixes Reddit galleries and inline Reddit videos failing to load, including gallery images Reddit marks as failed. | On |
 | Fix Imgur | Fixes Imgur albums and album thumbnails failing to load, and links with a title in them. | On |
@@ -38,3 +39,6 @@ Patches for rif is fun for Reddit. To install them, see the [README](../README.m
 
 - **Imgur uploads fail.** The app uploads through a RapidAPI proxy of Imgur's API that no longer accepts its key
   ("You are not subscribed to this API").
+- **Synccit, new post notifications and downloadable themes are gone.** They need servers that no longer answer:
+  synccit.com, and rif's rifnotifier.talklittle.com and redditthemes.com, so Enable golden platinum hides their settings,
+  menu items and theme list. Themes from a folder (Theme, Enable developer mode) still work.

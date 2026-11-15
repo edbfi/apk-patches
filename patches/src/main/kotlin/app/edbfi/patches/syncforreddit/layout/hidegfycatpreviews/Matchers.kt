@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 package app.edbfi.patches.syncforreddit.layout.hidegfycatpreviews
 
+import app.edbfi.patches.shared.isCallTo
 import app.edbfi.patches.shared.isDeclaredIn
 import app.edbfi.patches.shared.uniqueMethod
 import app.revanced.patcher.accessFlags
@@ -12,7 +13,6 @@ import app.revanced.patcher.patch.BytecodePatchContext
 import app.revanced.patcher.returnType
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /** `LinkTypeHelper`'s check for a Gfycat link: a gfycat.com host other than the bare site. */
 internal fun BytecodePatchContext.isGfycatMethod() = uniqueMethod("the Gfycat link check", "https://gfycat.com/") {
@@ -21,13 +21,6 @@ internal fun BytecodePatchContext.isGfycatMethod() = uniqueMethod("the Gfycat li
     parameterTypes("Ljava/lang/String;")
     custom { isDeclaredIn(this, "LinkTypeHelper.java") }
 }
-
-/** Whether [reference] names [method]. */
-private fun isCallTo(
-    reference: MethodReference,
-    method: Method,
-) = reference.definingClass == method.definingClass && reference.name == method.name &&
-    reference.parameterTypes == method.parameterTypes && reference.returnType == method.returnType
 
 /** Whether [method] calls [callee]. */
 private fun calls(
