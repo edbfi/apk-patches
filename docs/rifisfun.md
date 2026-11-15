@@ -18,6 +18,7 @@ Patches for rif is fun for Reddit. To install them, see the [README](../README.m
 | Fix Imgur | Fixes Imgur albums and album thumbnails failing to load, and links with a title in them. | On |
 | Fix load more comments | Fixes "load more comments" not loading further comments. | On |
 | Fix media links | Opens reddit.com/media links as the Reddit-hosted image they wrap. | On |
+| Fix Redgifs | Fixes Redgifs videos not loading. | On |
 | Fix YouTube player | Fixes the built-in YouTube player, which showed a black screen and error code 0. | On |
 | Spoof client | Restores login and browsing by using another app's Reddit OAuth client. | On |
 
