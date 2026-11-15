@@ -153,8 +153,17 @@ private fun albumBackground(
         """,
     )
     // Catch what the parser throws: from its call up to the return after its result, handled by the move-exception.
-    val parse = method.instructions.indexOfFirst { it.methodReference?.name == parser && it.methodReference?.definingClass == engine }
+    // Match its whole signature: R8 may give the URL getter, called first on the same class, the same short name.
+    val parse =
+        method.instructions.indexOfFirst {
+            it.methodReference?.let { ref ->
+                ref.definingClass == engine && ref.name == parser && ref.parameterTypes.map { p -> p.toString() } == listOf("Ljava/io/InputStream;")
+            } == true
+        }
     val handler = method.instructions.indexOfFirst { it.opcode == Opcode.MOVE_EXCEPTION }
+    if (parse < 0 || method.instructions[parse + 1].opcode != Opcode.MOVE_RESULT_OBJECT || handler <= parse) {
+        throw PatchException("The album task's background method didn't assemble as expected")
+    }
     val implementation = method.implementation!!
     implementation.addCatch(
         "Ljava/lang/Exception;",
