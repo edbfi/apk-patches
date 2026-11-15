@@ -13,6 +13,7 @@ Patches for rif is fun for Reddit. To install them, see the [README](../README.m
 | Patch | What it does | Default |
 | --- | --- | --- |
 | Disable ads | Removes ads and the ad consent form, and keeps the ad SDKs from starting. | On |
+| Fix galleries | Fixes Reddit galleries and inline Reddit videos failing to load, including gallery images Reddit marks as failed. | On |
 | Fix load more comments | Fixes "load more comments" not loading further comments. | On |
 | Fix YouTube player | Fixes the built-in YouTube player, which showed a black screen and error code 0. | On |
 | Spoof client | Restores login and browsing by using another app's Reddit OAuth client. | On |
