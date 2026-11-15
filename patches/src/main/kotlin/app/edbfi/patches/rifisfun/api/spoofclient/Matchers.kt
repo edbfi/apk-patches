@@ -54,23 +54,23 @@ internal fun BytecodePatchContext.appTokenCheckMethod() = uniqueMethod("the app-
     parameterTypes("Landroid/net/Uri;")
 }
 
+/** The class that builds the app's OkHttp clients, whose cache directory is `okhttp_cache`. */
+internal fun BytecodePatchContext.clientFactory() = uniqueMethod("the OkHttp client factory", "okhttp_cache") {}.definingClass
+
 /**
  * The User-Agent of every request the app sends, `reddit is fun (Android) <version>` from a string resource. It sits
  * in the class that builds the app's OkHttp clients, whose cache directory is `okhttp_cache`.
  */
-internal fun BytecodePatchContext.userAgentMethod(): MutableMethod {
-    val clients = uniqueMethod("the OkHttp client factory", "okhttp_cache") {}
-    return uniqueMethod("the User-Agent method") {
-        definingClass(clients.definingClass)
-        accessFlags(AccessFlags.PUBLIC, AccessFlags.STATIC)
-        returnType("Ljava/lang/String;")
-        parameterTypes()
-        custom {
-            implementation?.instructions?.any {
-                val reference = it.methodReference
-                reference?.definingClass == "Landroid/content/Context;" && reference.name == "getString" && reference.parameterTypes.size == 2
-            } == true
-        }
+internal fun BytecodePatchContext.userAgentMethod(): MutableMethod = uniqueMethod("the User-Agent method") {
+    definingClass(clientFactory())
+    accessFlags(AccessFlags.PUBLIC, AccessFlags.STATIC)
+    returnType("Ljava/lang/String;")
+    parameterTypes()
+    custom {
+        implementation?.instructions?.any {
+            val reference = it.methodReference
+            reference?.definingClass == "Landroid/content/Context;" && reference.name == "getString" && reference.parameterTypes.size == 2
+        } == true
     }
 }
 

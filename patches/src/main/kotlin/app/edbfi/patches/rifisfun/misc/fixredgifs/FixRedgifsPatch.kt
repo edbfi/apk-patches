@@ -3,6 +3,7 @@ package app.edbfi.patches.rifisfun.misc.fixredgifs
 
 import app.edbfi.patches.rifisfun.RIF_PACKAGE
 import app.edbfi.patches.rifisfun.RIF_VERSION
+import app.edbfi.patches.rifisfun.api.spoofclient.clientFactory
 import app.edbfi.patches.rifisfun.misc.extension.EXTENSION
 import app.edbfi.patches.rifisfun.misc.extension.extensionPatch
 import app.edbfi.patches.rifisfun.misc.extension.extensionSwitch
@@ -41,7 +42,7 @@ val fixRedgifsPatch =
             val lookup = tokenRequest.definingClass
             val edits =
                 listOf(
-                    useTemporaryTokens(tokenRequest),
+                    useTemporaryTokens(tokenRequest, lookup),
                     sendTheTokensUserAgent(lookup),
                     lowercaseGifIds(lookup),
                     unpinRedgifs(),
@@ -57,8 +58,10 @@ val fixRedgifsPatch =
  * rejection from the status the lookup kept, and sets that flag as the app's own token request does, so a rejected
  * new token ends the lookup instead of trying forever.
  */
-private fun BytecodePatchContext.useTemporaryTokens(tokenRequest: MutableMethod): Edit {
-    val lookup = tokenRequest.definingClass
+private fun BytecodePatchContext.useTemporaryTokens(
+    tokenRequest: MutableMethod,
+    lookup: String,
+): Edit {
     val getter = tokenGetterMethod(lookup)
     val send = lookupMethod(lookup, getter)
     val fields = classDefs[lookup]?.fields?.filter { !AccessFlags.STATIC.isSet(it.accessFlags) } ?: throw PatchException("No class $lookup")

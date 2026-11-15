@@ -59,9 +59,6 @@ internal fun BytecodePatchContext.gifPathMethod() = uniqueMethod("the Redgifs gi
     parameterTypes("Ljava/lang/String;")
 }
 
-/** The class that builds the app's OkHttp clients, whose cache directory is `okhttp_cache`. */
-internal fun BytecodePatchContext.clientFactory() = uniqueMethod("the OkHttp client factory", "okhttp_cache") {}.definingClass
-
 /**
  * The factory's certificate pinner: it adds each host's pins with the pinner builder's `add(pattern, vararg pins)`,
  * a method taking a String and a String array that returns its own builder.
