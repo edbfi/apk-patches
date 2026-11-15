@@ -178,10 +178,11 @@ private fun MutableMethod.checkUnreadAfter(
         val read = instruction.registersRead(destination != null)
         if (register in read) throw PatchException("$name reads v$register again at $at after adding its pins at $index")
         if (register in written) return
-        if (!instruction.opcode.canContinue()) return
+        // Branches first: a goto can't continue either, and its target may still read the register.
         if (instruction is OffsetInstruction && instruction.opcode != Opcode.FILL_ARRAY_DATA) {
             throw PatchException("$name branches at $at before v$register, the pins added at $index, is written again")
         }
+        if (!instruction.opcode.canContinue()) return
     }
 }
 
