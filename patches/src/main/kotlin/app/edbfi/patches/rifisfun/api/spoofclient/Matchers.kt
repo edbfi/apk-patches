@@ -3,6 +3,7 @@ package app.edbfi.patches.rifisfun.api.spoofclient
 
 import app.edbfi.patches.rifisfun.misc.extension.EXTENSION
 import app.edbfi.patches.shared.uniqueMethod
+import app.revanced.com.android.tools.smali.dexlib2.mutable.MutableMethod
 import app.revanced.patcher.accessFlags
 import app.revanced.patcher.custom
 import app.revanced.patcher.definingClass
@@ -57,7 +58,7 @@ internal fun BytecodePatchContext.appTokenCheckMethod() = uniqueMethod("the app-
  * The User-Agent of every request the app sends, `reddit is fun (Android) <version>` from a string resource. It sits
  * in the class that builds the app's OkHttp clients, whose cache directory is `okhttp_cache`.
  */
-internal fun BytecodePatchContext.userAgentMethod(): app.revanced.com.android.tools.smali.dexlib2.mutable.MutableMethod {
+internal fun BytecodePatchContext.userAgentMethod(): MutableMethod {
     val clients = uniqueMethod("the OkHttp client factory", "okhttp_cache") {}
     return uniqueMethod("the User-Agent method") {
         definingClass(clients.definingClass)
