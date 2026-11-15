@@ -70,13 +70,16 @@ public final class Galleries {
 
         @Override
         protected InputStream response(RequestHook.Request request, InputStream body) throws Exception {
-            String post = postId(request.appUrl);
-            JSONArray page = new JSONArray(new String(Http.readAll(body), StandardCharsets.UTF_8));
-            JSONObject listing = listing(page, post);
-            JSONObject data = listing.getJSONObject("data").getJSONArray("children").getJSONObject(0).getJSONObject("data");
-            repair(data, Galleries::headOk);
-            return new ByteArrayInputStream(listing.toString().getBytes(StandardCharsets.UTF_8));
+            return new ByteArrayInputStream(answer(Http.readAll(body), postId(request.appUrl), Galleries::headOk));
         }
+    }
+
+    /** The answer {@code /api/info} would give from the post's page: its listing, with a gallery repaired. */
+    static byte[] answer(byte[] body, String post, Probe probe) throws JSONException {
+        JSONObject listing = listing(new JSONArray(new String(body, StandardCharsets.UTF_8)), post);
+        JSONObject data = listing.getJSONObject("data").getJSONArray("children").getJSONObject(0).getJSONObject("data");
+        repair(data, probe);
+        return listing.toString().getBytes(StandardCharsets.UTF_8);
     }
 
     /**

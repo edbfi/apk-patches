@@ -9,11 +9,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
-import java.util.Arrays;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -87,7 +88,7 @@ public class GalleriesTest {
     }
 
     @Test
-    public void rewritesTheRequestAndAnswersWithTheListing() throws Exception {
+    public void rewritesTheRequestToThePostsPage() throws Exception {
         RequestHook.Request request = new RequestHook.Request(INFO + "1xnx8tw", "token", null);
         assertTrue(Galleries.HANDLER.handles(request));
         Galleries.HANDLER.rewrite(request);
@@ -103,6 +104,34 @@ public class GalleriesTest {
         JSONArray page = new JSONArray("[{\"kind\":\"Listing\",\"data\":{\"children\":[{\"kind\":\"t3\",\"data\":{\"id\":\"abc\"}}]}},"
                 + "{\"kind\":\"Listing\",\"data\":{\"children\":[{\"kind\":\"t1\",\"data\":{\"id\":\"c\"}}]}}]");
         assertSame(page.getJSONObject(0), Galleries.listing(page, "abc"));
+    }
+
+    @Test
+    public void answersWithTheRepairedListingAlone() throws Exception {
+        String post = "{\"kind\":\"t3\",\"data\":" + gallery("\"a\":" + VALID + ",\"b\":" + FAILED, "a", "b") + "}";
+        String page = "[{\"kind\":\"Listing\",\"data\":{\"children\":[" + post + "]}},"
+                + "{\"kind\":\"Listing\",\"data\":{\"children\":[{\"kind\":\"t1\",\"data\":{\"id\":\"c\"}}]}}]";
+        FakeProbe probe = new FakeProbe("https://i.redd.it/b.png");
+        byte[] answer = Galleries.answer(page.getBytes(StandardCharsets.UTF_8), "1xnx8tw", probe);
+        // The listing the app's parsers read, as /api/info sends it: data.children[0].data, without the comments.
+        JSONObject listing = new JSONObject(new String(answer, StandardCharsets.UTF_8));
+        JSONArray children = listing.getJSONObject("data").getJSONArray("children");
+        assertEquals(1, children.length());
+        JSONObject data = children.getJSONObject(0).getJSONObject("data");
+        assertEquals("1xnx8tw", data.getString("id"));
+        assertEquals("https://i.redd.it/b.png",
+                data.getJSONObject("media_metadata").getJSONObject("b").getJSONObject("s").getString("u"));
+    }
+
+    @Test
+    public void refusesAnAnswerAboutAnotherPost() {
+        String page = "[{\"kind\":\"Listing\",\"data\":{\"children\":[{\"kind\":\"t3\",\"data\":{\"id\":\"other\"}}]}}]";
+        try {
+            Galleries.answer(page.getBytes(StandardCharsets.UTF_8), "abc", new FakeProbe());
+            fail("Answered for another post");
+        } catch (JSONException expected) {
+            // The app treats the request as failed.
+        }
     }
 
     @Test
