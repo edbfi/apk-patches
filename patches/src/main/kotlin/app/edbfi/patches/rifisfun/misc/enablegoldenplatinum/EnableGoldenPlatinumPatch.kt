@@ -5,6 +5,7 @@ import app.edbfi.patches.rifisfun.RIF_PACKAGE
 import app.edbfi.patches.rifisfun.RIF_VERSION
 import app.edbfi.patches.rifisfun.ads.disableads.albumAdapterMethod
 import app.edbfi.patches.shared.Edit
+import app.edbfi.patches.shared.returnBoolean
 import app.revanced.com.android.tools.smali.dexlib2.mutable.MutableMethod
 import app.revanced.patcher.extensions.ExternalLabel
 import app.revanced.patcher.extensions.addInstructions
@@ -83,25 +84,12 @@ internal val unlockPatch =
                 }
             }
             // synccit.com no longer answers (Cloudflare 522); rifnotifier.talklittle.com has no address.
-            edits += returnFalse(synccitEnabled)
-            edits += returnFalse(newPostPush)
+            edits += synccitEnabled.returnBoolean(false)
+            edits += newPostPush.returnBoolean(false)
 
             edits.forEach { it.apply() }
         }
     }
-
-private fun returnFalse(method: MutableMethod): Edit {
-    if ((method.implementation?.registerCount ?: 0) < 1) throw PatchException("${method.name} has no register for a boolean")
-    return Edit(1) {
-        method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """,
-        )
-    }
-}
 
 private const val REQUIRES_ADS = "Requires ads enabled"
 

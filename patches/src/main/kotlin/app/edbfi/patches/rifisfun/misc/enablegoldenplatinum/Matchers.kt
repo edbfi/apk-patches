@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 package app.edbfi.patches.rifisfun.misc.enablegoldenplatinum
 
+import app.edbfi.patches.shared.isCallTo
 import app.edbfi.patches.shared.uniqueMethod
 import app.revanced.com.android.tools.smali.dexlib2.mutable.MutableMethod
 import app.revanced.patcher.accessFlags
@@ -143,13 +144,6 @@ internal fun BytecodePatchContext.builtWithAdsChecks(): List<Pair<MutableMethod,
         if (code.getOrNull(read + 1)?.opcode != Opcode.MOVE_RESULT) throw PatchException("${method.definingClass}->${method.name} drops built_with_ads")
         method to read + 1
     }
-
-/** Whether [reference] names [method]. */
-internal fun isCallTo(
-    reference: MethodReference?,
-    method: MethodReference,
-) = reference != null && reference.definingClass == method.definingClass && reference.name == method.name &&
-    reference.parameterTypes.map { it.toString() } == method.parameterTypes.map { it.toString() } && reference.returnType == method.returnType
 
 /** Whether the album ad helper may show ads: ads on, and not hidden for a Reddit Premium account. R8 kept its name. */
 internal fun BytecodePatchContext.albumAdsEnabledMethod() = uniqueMethod("ImageAlbumAdViewHelper.isAdsEnabledAndUnblocked") {

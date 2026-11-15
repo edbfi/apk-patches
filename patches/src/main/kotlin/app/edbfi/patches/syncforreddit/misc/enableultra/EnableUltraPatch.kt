@@ -2,6 +2,8 @@
 package app.edbfi.patches.syncforreddit.misc.enableultra
 
 import app.edbfi.patches.shared.Edit
+import app.edbfi.patches.shared.isCallTo
+import app.edbfi.patches.shared.returnBoolean
 import app.edbfi.patches.shared.rewriteStrings
 import app.edbfi.patches.syncforreddit.SYNC_PACKAGE
 import app.edbfi.patches.syncforreddit.SYNC_VERSION
@@ -45,12 +47,12 @@ val enableUltraPatch =
             val edits = mutableListOf<Edit>()
 
             // Every Ultra feature asks isUltra(); the purchase check keeps meaning "bought", for what needs Sync's servers.
-            edits += returnBoolean(ultra.isUltra, true)
+            edits += ultra.isUltra.returnBoolean(true)
             // Remote Config can switch Ultra off for anyone without a Play purchase token; Restore comment reads
             // Pushshift, which is gone. Translate runs on the device (ML Kit).
-            edits += returnBoolean(remoteFlag("c4266fa"), false)
-            edits += returnBoolean(remoteFlag("ultra_restore"), false)
-            edits += returnBoolean(remoteFlag("ultra_translate"), true)
+            edits += remoteFlag("c4266fa").returnBoolean(false)
+            edits += remoteFlag("ultra_restore").returnBoolean(false)
+            edits += remoteFlag("ultra_translate").returnBoolean(true)
 
             // Where the app talks to Sync's servers about Ultra, or picks where tags are kept, it asks the purchase check.
             listOf(
@@ -86,23 +88,6 @@ val enableUltraPatch =
             edits.forEach { it.apply() }
         }
     }
-
-/** Makes a `()Z` method return [value]. */
-private fun returnBoolean(
-    method: MutableMethod,
-    value: Boolean,
-): Edit {
-    if ((method.implementation?.registerCount ?: 0) < 1) throw PatchException("${method.name} has no register for a boolean")
-    return Edit(1) {
-        method.addInstructions(
-            0,
-            """
-                const/4 v0, ${if (value) "0x1" else "0x0"}
-                return v0
-            """,
-        )
-    }
-}
 
 private fun MethodReference.smali() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 

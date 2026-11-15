@@ -53,6 +53,20 @@ private fun Instruction.rewritten(transform: (String) -> String?): String? {
     return transform(old)?.takeIf { it != old }
 }
 
+/** Makes a `()Z` method return [value]. The original body stays behind the early return. */
+internal fun MutableMethod.returnBoolean(value: Boolean): Edit {
+    if ((implementation?.registerCount ?: 0) < 1) throw PatchException("$name has no register for a boolean")
+    return Edit(1) {
+        addInstructions(
+            0,
+            """
+                const/4 v0, ${if (value) "0x1" else "0x0"}
+                return v0
+            """,
+        )
+    }
+}
+
 /** Makes the method return [value]. The original body stays behind the early return. */
 internal fun MutableMethod.returnString(value: String): Edit {
     if ((implementation?.registerCount ?: 0) < 1) throw PatchException("$name has no register for a string")
