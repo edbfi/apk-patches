@@ -7,6 +7,8 @@ import app.edbfi.patches.rifisfun.misc.extension.EXTENSION
 import app.edbfi.patches.rifisfun.misc.extension.extensionPatch
 import app.edbfi.patches.rifisfun.misc.extension.extensionSwitch
 import app.revanced.patcher.extensions.addInstructions
+import app.revanced.patcher.extensions.instructions
+import app.revanced.patcher.patch.PatchException
 import app.revanced.patcher.patch.bytecodePatch
 
 @Suppress("unused")
@@ -20,9 +22,10 @@ val fixMarkdownLinksPatch =
 
         apply {
             val parse = parseHtmlMethod()
+            // A branch to the first instruction would skip the hook.
+            if (parse.instructions.first().location.labels.isNotEmpty()) throw PatchException("${parse.name} starts at a label")
             val enable = extensionSwitch("MarkdownLinks")
 
-            enable.apply()
             // The HTML arrives unescaped; fix it before the parser sees it. See MarkdownLinks.
             parse.addInstructions(
                 0,
@@ -31,5 +34,6 @@ val fixMarkdownLinksPatch =
                     move-result-object p0
                 """,
             )
+            enable.apply()
         }
     }
