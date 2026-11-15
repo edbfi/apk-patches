@@ -10,7 +10,6 @@ import app.revanced.patcher.parameterTypes
 import app.revanced.patcher.patch.BytecodePatchContext
 import app.revanced.patcher.returnType
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 
@@ -46,13 +45,9 @@ internal fun BytecodePatchContext.loadPlayerMethod(originGetter: String) = uniqu
         code.withIndex().any { (load, instruction) ->
             val call = instruction.methodReference
             if (call?.definingClass != "Landroid/webkit/WebView;" || call.name != "loadDataWithBaseURL") return@any false
-            // The base URL is the first argument, after the WebView itself.
-            val baseUrl =
-                when (instruction) {
-                    is RegisterRangeInstruction -> instruction.startRegister + 1
-                    is FiveRegisterInstruction -> instruction.registerD
-                    else -> return@any false
-                }
+            // Six registers make the call a range one; the base URL is the first argument, after the WebView itself.
+            val baseUrl = (instruction as? RegisterRangeInstruction ?: return@any false).startRegister + 1
+            // Any instruction's first register counts as a write, two-register ones included.
             val write = (load - 1 downTo 1).firstOrNull { (code[it] as? OneRegisterInstruction)?.registerA == baseUrl }
             write != null &&
                 code[write].opcode == Opcode.MOVE_RESULT_OBJECT &&
