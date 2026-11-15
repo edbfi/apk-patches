@@ -4,6 +4,8 @@ package app.edbfi.extension.rifisfun;
 import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -58,7 +60,7 @@ public final class RequestHook {
         public final String appUrl;
         /** The bearer token the request carries, or null without one. */
         public final String token;
-        /** The POST form fields in order, or null for a request without a form. */
+        /** The POST form fields in order, or null for a request without a form or one whose form didn't read. */
         public final Map<String, String> form;
         /** The URL to send instead; {@link #appUrl} until a handler changes it. */
         public String url;
@@ -80,12 +82,28 @@ public final class RequestHook {
             return !withoutForm;
         }
 
-        /** A GET of another Reddit API URL with this request's token and Reddit's User-Agent. */
+        /**
+         * A GET of another Reddit API URL with this request's token and Reddit's User-Agent. Throws for any other URL,
+         * so the token never goes elsewhere.
+         */
         public Http.Reply get(String url) throws IOException {
+            if (!isRedditApi(url)) throw new IOException("Not a Reddit API URL: " + url);
             Map<String, String> headers = new LinkedHashMap<>();
             if (token != null) headers.put("Authorization", "bearer " + token);
             headers.put("User-Agent", SpoofClient.redditUserAgent());
             return Http.send("GET", url, headers, null);
+        }
+    }
+
+    /** Whether {@code url} is an https URL that takes Reddit's API token. */
+    static boolean isRedditApi(String url) {
+        if (url == null) return false;
+        try {
+            URI uri = new URI(url);
+            String scheme = uri.getScheme();
+            return "https".equalsIgnoreCase(scheme) && SpoofClient.usesAppToken(scheme, uri.getHost(), uri.getPath());
+        } catch (URISyntaxException error) {
+            return false;
         }
     }
 

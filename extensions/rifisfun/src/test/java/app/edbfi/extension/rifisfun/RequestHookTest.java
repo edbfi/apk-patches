@@ -174,6 +174,23 @@ public class RequestHookTest {
         assertNull(RequestHook.form(new Object[] {"api_type=json"}));
     }
 
+    @Test
+    public void getsOnlyRedditApiUrls() {
+        assertTrue(RequestHook.isRedditApi("https://oauth.reddit.com/comments/abc.json"));
+        assertFalse(RequestHook.isRedditApi("http://oauth.reddit.com/comments/abc.json"));
+        assertFalse(RequestHook.isRedditApi("https://i.redd.it/abc.jpg"));
+        assertFalse(RequestHook.isRedditApi("https://reddit.com.example.org/r/x.json"));
+        assertFalse(RequestHook.isRedditApi("https://oauth.reddit.com/api/v1/access_token"));
+        assertFalse(RequestHook.isRedditApi("not a url"));
+        assertFalse(RequestHook.isRedditApi(null));
+        try {
+            new RequestHook.Request(INFO, "token", null).get("https://example.org/");
+            fail("expected an IOException");
+        } catch (IOException expected) {
+            assertTrue(expected.getMessage().contains("example.org"));
+        }
+    }
+
     private static InputStream stream(String text) {
         return new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
     }
