@@ -2,14 +2,10 @@
 package app.edbfi.patches.syncforreddit.misc.extension
 
 import app.edbfi.patches.shared.Edit
-import app.edbfi.patches.shared.uniqueMethod
-import app.revanced.patcher.definingClass
-import app.revanced.patcher.extensions.addInstructions
-import app.revanced.patcher.name
+import app.edbfi.patches.shared.extensionSwitch
 import app.revanced.patcher.patch.BytecodePatchContext
 import app.revanced.patcher.patch.PatchException
 import app.revanced.patcher.patch.bytecodePatch
-import app.revanced.patcher.returnType
 
 /** The package of the Java the extension adds to the app, as a type descriptor prefix. */
 internal const val EXTENSION = "Lapp/edbfi/extension/syncforreddit"
@@ -32,23 +28,7 @@ internal val extensionPatch =
  * Makes the extension class's `isEnabled()`, false as built, return true once applied. Look it up with the rest of a
  * patch's checks, before its first change.
  */
-internal fun BytecodePatchContext.extensionSwitch(className: String): Edit {
-    val method =
-        uniqueMethod("$className.isEnabled in the extension") {
-            definingClass("$EXTENSION/$className;")
-            name("isEnabled")
-            returnType("Z")
-        }
-    return Edit(1) {
-        method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                return v0
-            """,
-        )
-    }
-}
+internal fun BytecodePatchContext.extensionSwitch(className: String): Edit = extensionSwitch(EXTENSION, className)
 
 /** Turns the extension class on, for a patch whose only change this is or whose other changes are already made. */
 internal fun BytecodePatchContext.enableInExtension(className: String) = extensionSwitch(className).apply()
