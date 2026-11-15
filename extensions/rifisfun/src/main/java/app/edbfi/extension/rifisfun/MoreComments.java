@@ -198,7 +198,8 @@ public final class MoreComments {
      * are; if they are a comment's, one page of that comment usually holds them all. The others get one page each,
      * a few at a time, at most {@link #BATCH} pages in all, fewer when Reddit's rate limit runs low, and none started
      * after the answer's deadline; the rest come back as a "more" thing. The first comment's page is the app's own
-     * reply, which costs no request, so it is used even when the rate limit leaves nothing. Comments Reddit no longer has are left out.
+     * reply, which costs no request, so it is used even when the rate limit leaves nothing. Comments Reddit no
+     * longer has are left out.
      * Pages are fetched on the pool, so the calling thread waits no longer than {@code timeoutMs}.
      */
     static JSONArray things(String link, List<String> ids, final Source source, ExecutorService pool, long timeoutMs)
