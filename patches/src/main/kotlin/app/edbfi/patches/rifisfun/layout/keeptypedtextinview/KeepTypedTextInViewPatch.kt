@@ -12,8 +12,8 @@ private const val PADDING = "android:padding"
 private const val MARGIN = "android:layout_margin"
 
 /**
- * The reply box (also used to edit), the new message box and the two modmail boxes. Each holds its whole form in a
- * ScrollView that is padded on all sides to sit inside the box's rounded background.
+ * The reply box (also used to edit), the new message box and the two modmail boxes, which only exist in res/layout.
+ * Each holds its whole form in a ScrollView, padded on all sides and placed in a FrameLayout that draws the box.
  */
 private val LAYOUTS = listOf("comment_reply_dialog", "compose_message_dialog", "compose_modmail_dialog", "modmail_reply_dialog")
 
@@ -43,6 +43,11 @@ val keepTypedTextInViewPatch =
                         if (!scrollView.hasAttribute(PADDING)) throw PatchException("The ScrollView in $name has no padding")
                         val margins = (0 until scrollView.attributes.length).map { scrollView.attributes.item(it).nodeName }.filter { it.startsWith(MARGIN) }
                         if (margins.isNotEmpty()) throw PatchException("The ScrollView in $name already has $margins")
+                        // The margin keeps the box as it was only if the box is drawn by something else and the
+                        // ScrollView's parent lays out margins.
+                        if (scrollView.hasAttribute("android:background")) throw PatchException("The ScrollView in $name has a background of its own")
+                        val parent = (scrollView.parentNode as? Element)?.tagName
+                        if (parent != "FrameLayout") throw PatchException("The ScrollView in $name sits in $parent, not a FrameLayout")
                         scrollView
                     }
                 for (scrollView in scrollViews) {
