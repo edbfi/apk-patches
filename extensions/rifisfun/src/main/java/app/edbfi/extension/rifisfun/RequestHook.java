@@ -89,12 +89,17 @@ public final class RequestHook {
          * and for a redirect to one, so the token never goes elsewhere.
          */
         public Http.Reply get(String url) throws IOException {
+            return get(url, Http.TIMEOUT_MS);
+        }
+
+        /** As {@link #get(String)}, with {@code timeoutMs} for each hop's connection and reads. */
+        public Http.Reply get(String url, int timeoutMs) throws IOException {
             Map<String, String> headers = new LinkedHashMap<>();
             if (token != null) headers.put("Authorization", "bearer " + token);
             headers.put("User-Agent", SpoofClient.redditUserAgent());
             for (int hop = 0; hop <= MAX_REDIRECTS; hop++) {
                 if (!isRedditApi(url)) throw new IOException("Not a Reddit API URL: " + url);
-                Http.Reply reply = Http.send("GET", url, headers, null, false);
+                Http.Reply reply = Http.send("GET", url, headers, null, false, timeoutMs);
                 String target = redirectTarget(url, reply);
                 if (target == null) return reply;
                 url = target;

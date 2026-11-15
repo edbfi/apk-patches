@@ -76,6 +76,9 @@ public final class MoreComments {
     // Requests left in Reddit's rate-limit window that are kept for the app's own requests.
     private static final int RESERVE = 20;
     private static final int THREADS = 4;
+    // Each extra page's connection and reads: a page that hangs frees its pool thread soon after the answer gave up,
+    // as an interrupt doesn't stop a blocked read.
+    private static final int PAGE_TIMEOUT_MS = 5_000;
     // The app's loaders share 4 threads with this one: keep each answer short.
     private static final long ANSWER_DEADLINE_MS = 15_000;
 
@@ -433,7 +436,7 @@ public final class MoreComments {
                 }
             }
             String url = pageUrl(origin, wanted.post, id, parent, wanted.sort);
-            Http.Reply reply = request.get(url);
+            Http.Reply reply = request.get(url, PAGE_TIMEOUT_MS);
             RateLimit reading = rateLimit(reply.headers.get("X-Ratelimit-Remaining"),
                     reply.headers.get("X-Ratelimit-Reset"), System.currentTimeMillis());
             // Without one, the last reading stays.
