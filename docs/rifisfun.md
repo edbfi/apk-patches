@@ -38,8 +38,3 @@ Patches for rif is fun for Reddit. To install them, see the [README](../README.m
 
 - **Imgur uploads fail.** The app uploads through a RapidAPI proxy of Imgur's API that no longer accepts its key
   ("You are not subscribed to this API").
-- **"Load more comments" loads at most about 20 comments per tap in long threads, and a new row stays for the rest.**
-  Reddit refuses the app's request for them, so each comes from a page of its own; replies to a comment usually come
-  from one page of their parent.
-- **Fix markdown links also links text whose brackets were escaped.** Reddit sends `\[name\](u/name)` as the same HTML
-  as an unescaped `[name](u/name)`, so it shows as a link too.
