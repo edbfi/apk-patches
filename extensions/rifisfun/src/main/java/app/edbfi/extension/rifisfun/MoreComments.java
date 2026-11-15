@@ -194,14 +194,15 @@ public final class MoreComments {
      * The things to answer with, in the requested order. The first comment Reddit still has tells whose replies they
      * are; if they are a comment's, one page of that comment usually holds them all. The others get one page each,
      * a few at a time, at most {@link #BATCH} pages in all, fewer when Reddit's rate limit runs low, and none started
-     * after the answer's deadline; the rest come back as a "more" thing. Comments Reddit no longer has are left out.
+     * after the answer's deadline; the rest come back as a "more" thing. The first comment's page is the app's own
+     * reply, which costs no request, so it is used even when the rate limit leaves nothing. Comments Reddit no longer has are left out.
      * Pages are fetched on the pool, so the calling thread waits no longer than {@code timeoutMs}.
      */
     static JSONArray things(String link, List<String> ids, final Source source, ExecutorService pool, long timeoutMs)
             throws Exception {
         long deadline = System.currentTimeMillis() + timeoutMs;
-        if (source.budget() <= 0) throw new IOException("Reddit's rate limit is used up");
-        int limit = Math.min(BATCH, source.budget());
+        // The first page is the app's own reply, already in hand: it is answered even with no budget left.
+        int limit = Math.max(1, Math.min(BATCH, source.budget()));
         Map<String, JSONObject> found = new HashMap<>();
         Set<String> gone = new HashSet<>();
         int sent = 0;

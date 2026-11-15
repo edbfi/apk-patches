@@ -210,15 +210,16 @@ public class MoreCommentsTest {
     }
 
     @Test
-    public void nothingIsSentOnceTheBudgetIsUsedUp() throws Exception {
-        Pages pages = new Pages().with(comment("c0", LINK));
+    public void onlyTheAppsOwnReplyIsUsedOnceTheBudgetIsUsedUp() throws Exception {
+        Pages pages = new Pages();
+        for (String id : ids(3)) pages.with(comment(id, LINK));
         pages.budget = 0;
-        try {
-            MoreComments.things(LINK, ids(1), pages, POOL, TIMEOUT);
-            fail();
-        } catch (IOException expected) {
-            assertTrue(pages.requested.isEmpty());
-        }
+
+        List<String> rows = rows(MoreComments.things(LINK, ids(3), pages, POOL, TIMEOUT));
+
+        // c0's page is the app's own reply; nothing else is sent.
+        assertEquals(Arrays.asList("c0"), pages.requested);
+        assertEquals(Arrays.asList("c0 under t3_post", "more c1,c2 under t3_post"), rows);
     }
 
     @Test
