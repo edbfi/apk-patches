@@ -64,10 +64,18 @@ public final class SpoofClient {
         try {
             SharedPreferences preferences = App.preferences();
             if (token == null || token.isEmpty() || preferences == null) return expiry;
-            return issuedHere(token).equals(preferences.getString(APP_TOKEN_KEY, null)) ? expiry : 0;
+            return expiryFor(preferences.getString(APP_TOKEN_KEY, null), token, expiry);
         } catch (RuntimeException error) {
             return expiry;
         }
+    }
+
+    /**
+     * {@code expiry} if {@code marker}, the stored note of the last token handed out, says {@code token} was issued to
+     * the current client ID, else 0.
+     */
+    static long expiryFor(String marker, String token, long expiry) {
+        return issuedHere(token).equals(marker) ? expiry : 0;
     }
 
     /** Notes that the app-only token the app hands out was issued to the current client ID. */

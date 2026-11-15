@@ -45,6 +45,16 @@ public class SpoofClientTest {
     }
 
     @Test
+    public void dropsATokenIssuedElsewhere() {
+        String issued = SpoofClient.issuedHere("token");
+        assertEquals(1234L, SpoofClient.expiryFor(issued, "token", 1234L));
+        // Another client's token, a token this client didn't hand out, or one from before the patch: get a new one.
+        assertEquals(0L, SpoofClient.expiryFor("otherClient:" + SpoofClient.sha256("token"), "token", 1234L));
+        assertEquals(0L, SpoofClient.expiryFor(issued, "other-token", 1234L));
+        assertEquals(0L, SpoofClient.expiryFor(null, "token", 1234L));
+    }
+
+    @Test
     public void tellsTokensApartWithoutStoringThem() {
         String issued = SpoofClient.issuedHere("secret-token");
         assertFalse(issued.contains("secret-token"));
