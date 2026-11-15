@@ -17,9 +17,11 @@ Patches for rif is fun for Reddit. To install them, see the [README](../README.m
 | Fix galleries | Fixes Reddit galleries and inline Reddit videos failing to load, including gallery images Reddit marks as failed. | On |
 | Fix Imgur | Fixes Imgur albums and album thumbnails failing to load, and links with a title in them. | On |
 | Fix load more comments | Fixes "load more comments" not loading further comments. | On |
+| Fix markdown links | Shows markdown links that Reddit leaves as raw text, such as links to u/name, as links. | On |
 | Fix media links | Opens reddit.com/media links as the Reddit-hosted image they wrap. | On |
 | Fix Redgifs | Fixes Redgifs videos not loading. | On |
 | Fix YouTube player | Fixes the built-in YouTube player, which showed a black screen and error code 0. | On |
+| Keep typed text in view | Keeps the line being typed in view in the reply, message and modmail boxes. | On |
 | Spoof client | Restores login and browsing by using another app's Reddit OAuth client. | On |
 
 ## Options
@@ -39,3 +41,5 @@ Patches for rif is fun for Reddit. To install them, see the [README](../README.m
 - **"Load more comments" loads at most about 20 comments per tap in long threads, and a new row stays for the rest.**
   Reddit refuses the app's request for them, so each comes from a page of its own; replies to a comment usually come
   from one page of their parent.
+- **Fix markdown links also links text whose brackets were escaped.** A comment that writes `\[name\](u/name)` to show
+  the brackets reaches the app as the same HTML as one that meant a link, so it shows as a link too.
