@@ -2,9 +2,11 @@
 package app.edbfi.extension.rifisfun;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -74,6 +76,8 @@ public final class ShareLinks {
         if (data == null || !isShareLink(data.toString())) return false;
         String url = data.toString();
         String userAgent = SpoofClient.redditUserAgent();
+        Waiter waiter = new Waiter(activity);
+        activity.getApplication().registerActivityLifecycleCallbacks(waiter);
         new Thread(() -> {
             String target = null;
             try {
@@ -83,9 +87,65 @@ public final class ShareLinks {
                 Log.w(App.TAG, "Could not resolve " + url, error);
             }
             String resolved = target;
-            new Handler(Looper.getMainLooper()).post(() -> finish(activity, url, resolved));
+            new Handler(Looper.getMainLooper()).post(() -> waiter.whenResumed(() -> finish(activity, url, resolved)));
         }, "edbfi-share-link").start();
         return true;
+    }
+
+    /**
+     * Holds the result until the resolving activity is in the foreground. Should the user leave the app while the
+     * redirect loads, Android may block the start, losing the link, or let it pull the app back over what the user
+     * went to; the result opens when they come back instead.
+     */
+    private static final class Waiter implements Application.ActivityLifecycleCallbacks {
+        private final Activity activity;
+        private boolean resumed;
+        private Runnable pending;
+
+        Waiter(Activity activity) {
+            this.activity = activity;
+        }
+
+        void whenResumed(Runnable action) {
+            if (resumed) {
+                action.run();
+            } else {
+                pending = action;
+            }
+        }
+
+        @Override
+        public void onActivityResumed(Activity resumedActivity) {
+            if (resumedActivity != activity) return;
+            resumed = true;
+            Runnable action = pending;
+            pending = null;
+            if (action != null) action.run();
+        }
+
+        @Override
+        public void onActivityPaused(Activity pausedActivity) {
+            if (pausedActivity == activity) resumed = false;
+        }
+
+        @Override
+        public void onActivityDestroyed(Activity destroyedActivity) {
+            if (destroyedActivity != activity) return;
+            pending = null;
+            activity.getApplication().unregisterActivityLifecycleCallbacks(this);
+        }
+
+        @Override
+        public void onActivityCreated(Activity created, Bundle state) {}
+
+        @Override
+        public void onActivityStarted(Activity started) {}
+
+        @Override
+        public void onActivityStopped(Activity stopped) {}
+
+        @Override
+        public void onActivitySaveInstanceState(Activity saving, Bundle state) {}
     }
 
     private static void finish(Activity activity, String url, String target) {
