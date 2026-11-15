@@ -24,7 +24,8 @@ import org.json.JSONObject;
 /**
  * Answers the app's requests for one post from {@code /api/info.json?id=t3_<post>}, which Reddit refuses (403) for
  * every id, from the post's page {@code /comments/<post>.json?limit=1}, whose first element is the same listing. The
- * gallery viewer asks this way, and so do the inline v.redd.it player and the comment page's post refresh.
+ * gallery viewer asks this way, and so does the inline v.redd.it player; so do the comment page's post refresh and
+ * the reply screen's lock check for a post, which carry on without it when it fails.
  *
  * <p>Reddit sends some gallery images as {@code {"status":"failed"}} (or {@code "unprocessed"}), without sizes, and
  * the app then rejects the whole gallery. The images are still on i.redd.it as {@code <media id>.<ext>}; the

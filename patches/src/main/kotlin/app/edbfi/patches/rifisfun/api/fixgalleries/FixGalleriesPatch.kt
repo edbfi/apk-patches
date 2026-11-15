@@ -11,7 +11,7 @@ import app.revanced.patcher.patch.bytecodePatch
 val fixGalleriesPatch =
     bytecodePatch(
         name = "Fix galleries",
-        description = "Fixes Reddit galleries failing to open, including galleries with images Reddit marks as failed.",
+        description = "Fixes Reddit galleries and inline Reddit videos failing to load, including gallery images Reddit marks as failed.",
     ) {
         compatibleWith(RIF_PACKAGE(RIF_VERSION))
         dependsOn(requestHookPatch)
