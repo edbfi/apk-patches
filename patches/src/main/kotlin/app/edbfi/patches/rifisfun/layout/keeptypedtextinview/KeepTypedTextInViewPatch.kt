@@ -27,7 +27,7 @@ private val LAYOUTS = listOf("comment_reply_dialog", "compose_message_dialog", "
 val keepTypedTextInViewPatch =
     resourcePatch(
         name = "Keep typed text in view",
-        description = "Keeps the line being typed in view in the reply, message and modmail boxes.",
+        description = "Keeps the line being typed in view when writing a long reply.",
     ) {
         compatibleWith(RIF_PACKAGE(RIF_VERSION))
 
