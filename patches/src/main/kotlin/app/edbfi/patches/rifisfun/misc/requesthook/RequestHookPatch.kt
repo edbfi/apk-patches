@@ -68,7 +68,12 @@ internal val requestHookPatch =
                     throw PatchException("A branch lands on instruction $index of the engine's send method")
                 }
             }
+            // The skip lands after the form call, which must not leave a result there: a branch can't land on its
+            // move-result.
             val afterForm = send.getInstruction<BuilderInstruction>(addForm + 1)
+            if (afterForm.opcode in listOf(Opcode.MOVE_RESULT, Opcode.MOVE_RESULT_WIDE, Opcode.MOVE_RESULT_OBJECT)) {
+                throw PatchException("The engine's form call keeps its result")
+            }
 
             val readForm = forms.withIndex().joinToString("") { (index, form) -> form.read(index, scratch, engineRegister) }
 
