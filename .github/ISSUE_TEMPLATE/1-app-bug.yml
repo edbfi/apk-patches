@@ -12,8 +12,18 @@ body:
           required: true
         - label: I patched the app version its page in [Supported apps](https://github.com/edbfi/apk-patches#supported-apps) lists as tested, with the latest release.
           required: true
-        - label: I patched with only this bundle. In ReVanced Manager, that means unticking ReVanced Patches, as [Install](https://github.com/edbfi/apk-patches#revanced-manager) says.
+        - label: I patched with only this bundle. In ReVanced Manager, that means unticking ReVanced Patches, as [Install](https://github.com/edbfi/apk-patches#revanced-manager) says; in Morphe Manager, selecting no other source's patches for the app.
           required: true
+  - type: dropdown
+    id: ecosystem
+    attributes:
+      label: Bundle
+      description: The bundle you patched with.
+      options:
+        - ReVanced (patches-X.Y.Z.rvp)
+        - Morphe (patches-X.Y.Z.mpp)
+    validations:
+      required: true
   - type: input
     id: app
     attributes:
@@ -33,6 +43,7 @@ body:
     id: tool
     attributes:
       label: Patching tool and version
+      description: ReVanced Manager, the ReVanced CLI, Morphe Manager or the Morphe CLI.
       placeholder: ReVanced Manager 2.6.0
     validations:
       required: true
@@ -88,6 +99,8 @@ body:
         Optional, but it shows what was applied.
         - **ReVanced Manager:** once patching stops, tap the second icon in the bottom bar of the patching screen (**Save logs**; long-press an icon to see its name). If Manager itself crashes, use Settings → Advanced → **Export debug logs**.
         - **ReVanced CLI:** the whole terminal output of the `patch` command.
+        - **Morphe Manager:** with Settings → **Expert mode** on, the patching screen shows the log; tap **Copy** in its bottom bar (after a successful patch, tap **Logs** first). Without Expert mode, a failed run's **Error details** has a **Copy** button. If Manager itself crashes, use Settings → **Help & info** → **Export debug logs**.
+        - **Morphe CLI:** the whole terminal output of the `patch` command.
       render: text
   - type: textarea
     id: media
