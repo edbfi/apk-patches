@@ -1,7 +1,8 @@
 # Agent instructions
 
 ReVanced patches by edbfi: one bundle, `patches-<version>.rvp`, with patches for several Android apps.
-CI comes from [edbfi-ci](https://github.com/edbfi/edbfi-ci); its rules apply here.
+CI comes from [edbfi-ci](https://github.com/edbfi/edbfi-ci); its rules apply here. `CLAUDE.md` is a symlink to this
+file.
 
 ## Layout
 
@@ -16,7 +17,17 @@ CI comes from [edbfi-ci](https://github.com/edbfi/edbfi-ci); its rules apply her
   the root's `android.library apply false`; building them needs an Android SDK (`ANDROID_HOME`).
 - Every bundle a user loads shares one class loader, so a bundle file another bundle also has can be read in place
   of ours. Hence the `edbfi` in resource and extension paths; `PatchMetadataTest` checks it.
-- Never commit APKs, bundles, keystores or app code. Samples and patched output go in the ignored `tmp/`.
+
+## Local files
+
+- Never commit APKs, bundles, keystores or app code. Local files go in the main checkout's ignored `tmp/`:
+  `inputs/<app>-<version>/` for downloads, one app version per directory; `decompiled/<app>-<version>/`;
+  `repos/` for other projects' clones; `tools/<purpose>/` for our scripts; `evidence/<feature>/`;
+  `releases/<version>/` for release assets and notes; and `archive/` for finished work. `<app>` is as in its
+  package dir. `just patch` writes the current checkout's `tmp/out/`, and the device-test skill writes
+  `tmp/device-test/<run>/`.
+- Fetch an APK yourself with `agent-browser`, which runs cloakbrowser for Cloudflare's check, from APKMirror,
+  APKPure or a similar site.
 
 ## Patches
 
@@ -30,15 +41,15 @@ CI comes from [edbfi-ci](https://github.com/edbfi/edbfi-ci); its rules apply her
 - More than a few injected instructions belong in extension Java; the smali only calls into it.
 - Fail at patch time: throw `PatchException` when a match is missing or ambiguous rather than risk a
   `VerifyError` in the app. Look up and check everything a patch needs before its first change: the patcher keeps
-  a failed patch's changes, and the CLI still writes the APK. A shared hook patch must leave the app no worse until a
-  feature turns it on.
+  a failed patch's changes, and the CLI still writes the APK. A shared hook patch must leave the app no worse until
+  a feature turns it on.
 - Helpers are `internal`; only patches are public.
 
 ## Commands
 
-- `just check` runs what CI runs, prek hooks included; `just build` builds the bundle; `just patch <apk>` applies it to an APK with
-  the pinned revanced-cli, into `tmp/out/`, signed with the main checkout's `tmp/test-signing.keystore` so every
-  worktree's build installs over the last with `adb install -r` and keeps the app's data.
+- `just check` runs what CI runs, prek hooks included. `just build` builds the bundle. `just patch <apk>` applies it
+  with the pinned revanced-cli into `tmp/out/`, signed with the main checkout's `tmp/test-signing.keystore`, so
+  every worktree's build installs over the last with `adb install -r` and keeps the app's data.
 - Gradle needs `githubPackagesUsername` and `githubPackagesPassword` (a classic PAT with only `read:packages`)
   in `~/.gradle/gradle.properties`. Its daemon runs on JDK 25 (`gradle/gradle-daemon-jvm.properties`); point
   `org.gradle.java.installations.paths` there at a JDK 25 that Gradle doesn't find by itself, such as Homebrew's.
@@ -46,16 +57,16 @@ CI comes from [edbfi-ci](https://github.com/edbfi/edbfi-ci); its rules apply her
 ## Test device
 
 - `just device` starts Android 15 in Docker ([Redroid](https://github.com/remote-android/redroid-doc), no VM or
-  KVM) and connects adb on loopback; use `ANDROID_SERIAL=127.0.0.1:5600`. `just device-reset` deletes it and its
-  data, including the owner's login: agents run it only when the owner asks. Agents share the one device: take
-  turns.
+  KVM) and connects adb on loopback: `ANDROID_SERIAL=127.0.0.1:5600`. Agents share it: take turns.
+  `just device-reset` deletes it and its data, the owner's login included: run it only when the owner asks.
 - The host kernel needs binderfs and PSI; where PSI is off by default, boot with `psi=1`. On arm64 Linux, use a
   native `adb` on `PATH`, not the SDK's x86_64 one.
 - It renders in software, and playing a video crashes its SurfaceFlinger
   ([redroid-doc#920](https://github.com/remote-android/redroid-doc/issues/920)): turn autoplay off and check
   videos through downloaded files and logs.
-- Reddit's login page rejects Redroid's WebView (Chromium 128), so on arm64 `just device` installs a pinned Chromium
-  WebView over it, re-signed with AOSP's public test key; the first run needs `ANDROID_HOME` for `apksigner`.
+- Reddit's login page rejects Redroid's WebView (Chromium 128), so on arm64 `just device` installs a pinned
+  Chromium WebView over it, re-signed with AOSP's public test key; the first run needs `ANDROID_HOME` for
+  `apksigner`.
 - Agents never type account credentials. The owner logs in through scrcpy; the agent then keeps the login by
   updating with `adb install -r`, never uninstalling.
 
@@ -66,33 +77,33 @@ CI comes from [edbfi-ci](https://github.com/edbfi/edbfi-ci); its rules apply her
   pin (`.rea/package.json`) there, fetches its JADX bridge, re-syncs `.agents/skills/reverse-engineer-anything`
   from the installed package, and checks Ghidra and JADX.
 - Machine tools: Homebrew `openjdk@25` and `apktool`, and `adb`. rea verifies its Ghidra bridge against 12.1.4
-  only and runs later 12.x releases, such as Homebrew's 12.2, unverified, so Ghidra 12.1.4 comes from NSA's release
-  zip into `~/.local/opt/ghidra_12.1.4_PUBLIC` (or set `GHIDRA_INSTALL_DIR`); on arm64, build its decompiler with `support/gradle/gradlew buildNatives`.
+  only and runs later 12.x, such as Homebrew's 12.2, unverified, so Ghidra 12.1.4 comes from NSA's release zip into
+  `~/.local/opt/ghidra_12.1.4_PUBLIC` (or set `GHIDRA_INSTALL_DIR`); on arm64, build its decompiler with
+  `support/gradle/gradlew buildNatives`.
+- On arm64 Linux, x86_64 Android tools such as aapt2 run through `qemu-user-binfmt` with `libc6-amd64-cross`.
 - Bump rea by hand: change `.rea/package.json`, refresh the lock with
   `npm install --package-lock-only --prefix .rea`, run `just setup-rea`, and commit the skill changes with it.
-- On arm64 Linux, x86_64 Android tools such as aapt2 run through `qemu-user-binfmt` with `libc6-amd64-cross`.
 
 ## Docs
 
-- Docs hold only what the code can't say: this file, `README.md` and `docs/` for users, and short comments next to the code
-  they explain. No reports, plans or notes in the repo: evidence goes in the PR body.
+- Docs hold only what the code can't say: this file, `README.md` and `docs/` for users, and short comments next to
+  the code they explain. No reports, plans or notes in the repo: evidence goes in the PR body.
 - When a fact changes, fix or delete every other statement of it; never append history.
-- `README.md` lists each app in Supported apps (link to its page, package, number of patches) and holds what all apps
-  share, such as Install. Each app has a page, `docs/<app>.md` (`<app>` as in its package dir), titled with its name:
-  Tested version, Patches (name and description as in the code, On/Off default), Options (what they are for, not their
-  defaults) and Known issues (bold symptom, then cause; deleted once fixed). Leave out an empty Options or Known
-  issues. `ReadmeTest` checks the app table and each page against the bundle.
-- `CLAUDE.md` is a symlink to this file.
+- `README.md` lists each app in Supported apps (link to its page, package, number of patches) and holds what all
+  apps share, such as Install. Each app has a page, `docs/<app>.md` (`<app>` as in its package dir), titled with
+  its name: Tested version, Patches (name and description as in the code, On/Off default), Options (what they are
+  for, not their defaults) and Known issues (bold symptom, then cause; deleted once fixed). Leave out an empty
+  Options or Known issues. `ReadmeTest` checks the app table and each page against the bundle.
 
 ## Commits and releases
 
 - Conventional Commits scoped by app (`feat(syncforreddit): …`) or by area (`ci`, `rea`), with a DCO sign-off
   (`git commit -s`), through a PR.
-- New source files carry `SPDX-License-Identifier: AGPL-3.0-or-later`. Other patch repos are reference only: nothing
-  is copied from them.
+- New source files carry `SPDX-License-Identifier: AGPL-3.0-or-later`. Other patch repos are reference only:
+  nothing is copied from them.
 - The bundle has one [SemVer](https://semver.org/) version. Release by publishing a GitHub release from main
   tagged `vX.Y.Z`; `release.yml` builds, signs and attaches the assets. Never move, delete or reuse a tag; fix a
   bad release with a new one.
-- The first release is `0.1.0`. After that, bump from the commits since the last tag: breaking → major (minor
-  while the version is `0.y.z`), `feat` → minor, `fix` or `perf` → patch. A change is breaking when users must
-  act on it: a removed or renamed patch or option, or a dropped app version. Mark it with `!`.
+- Bump from the commits since the last tag: breaking → major (minor while the version is `0.y.z`), `feat` → minor,
+  `fix` or `perf` → patch. A change is breaking when users must act on it: a removed or renamed patch or option, or
+  a dropped app version. Mark it with `!`.
