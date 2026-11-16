@@ -1,6 +1,7 @@
 # Agent instructions
 
-ReVanced patches by edbfi: one bundle, `patches-<version>.rvp`, with patches for several Android apps.
+ReVanced patches by edbfi: one bundle, `patches-<version>.rvp`, with patches for several Android apps. Its Gradle
+build is `revanced/`; paths below are relative to it unless they start at the repository root.
 CI comes from [edbfi-ci](https://github.com/edbfi/edbfi-ci); its rules apply here. `CLAUDE.md` is a symlink to this
 file.
 
@@ -14,7 +15,7 @@ file.
   `app.edbfi.extension.<app>`, with compile-only stubs of the app's classes in its `stub/` subproject. Add it with
   the first patch that needs it, name its file `extensions/edbfi/<app>.rve` with the plugin's `extension { name }`,
   and keep kotlin-stdlib out of its runtime classpath. Extension modules share `extensions/proguard-rules.pro` and
-  the root's `android.library apply false`; building them needs an Android SDK (`ANDROID_HOME`).
+  `build.gradle.kts`'s `android.library apply false`; building them needs an Android SDK (`ANDROID_HOME`).
 - Every bundle a user loads shares one class loader, so a bundle file another bundle also has can be read in place
   of ours. Hence the `edbfi` in resource and extension paths; `PatchMetadataTest` checks it.
 
@@ -25,7 +26,8 @@ file.
   `repos/` for other projects' clones; `tools/<purpose>/` for our scripts; `evidence/<feature>/`;
   `releases/<version>/` for release assets and notes; and `archive/` for finished work. `<app>` is as in its
   package dir; `<name>` is `<app>` for our apps and the project's repo name otherwise (`revanced-manager`).
-  `just patch` writes the current checkout's `tmp/out/`, and the device-test skill writes `tmp/device-test/<run>/`.
+  `just revanced-patch` writes the current checkout's `tmp/out/`, and the device-test skill writes
+  `tmp/device-test/<run>/`.
 - Fetch an APK yourself with `agent-browser`, which runs cloakbrowser for Cloudflare's check, from APKMirror,
   APKPure or a similar site.
 
@@ -47,9 +49,10 @@ file.
 
 ## Commands
 
-- `just check` runs what CI runs, prek hooks included. `just build` builds the bundle. `just patch <apk>` applies it
-  with the pinned revanced-cli into `tmp/out/`, signed with the main checkout's `tmp/test-signing.keystore`, so
-  every worktree's build installs over the last with `adb install -r` and keeps the app's data.
+- `just check` runs what CI runs, prek hooks included. `just build` builds the bundle. `just revanced-patch <apk>`
+  applies it with the pinned revanced-cli into `tmp/out/`, signed with the main checkout's
+  `tmp/test-signing.keystore`, so every worktree's build installs over the last with `adb install -r` and keeps the
+  app's data.
 - Gradle needs `githubPackagesUsername` and `githubPackagesPassword` (a classic PAT with only `read:packages`)
   in `~/.gradle/gradle.properties`. Its daemon runs on JDK 25 (`gradle/gradle-daemon-jvm.properties`); point
   `org.gradle.java.installations.paths` there at a JDK 25 that Gradle doesn't find by itself, such as Homebrew's.
@@ -89,11 +92,12 @@ file.
 - Docs hold only what the code can't say: this file, `README.md` and `docs/` for users, and short comments next to
   the code they explain. No reports, plans or notes in the repo: evidence goes in the PR body.
 - When a fact changes, fix or delete every other statement of it; never append history.
-- `README.md` lists each app in Supported apps (link to its page, package, number of patches) and holds what all
-  apps share, such as Install. Each app has a page, `docs/<app>.md` (`<app>` as in its package dir), titled with
-  its name: Tested version, Patches (name and description as in the code, On/Off default), Options (what they are
-  for, not their defaults) and Known issues (bold symptom, then cause; deleted once fixed). Leave out an empty
-  Options or Known issues. `ReadmeTest` checks the app table and each page against the bundle.
+- `README.md` lists each app in Supported apps (name, package, and a link to its page named by the number of
+  patches) and holds what all apps share, such as Install. Each app has a page, `docs/revanced/<app>.md` (`<app>`
+  as in its package dir), titled with its name: Tested version, Patches (name and description as in the code,
+  On/Off default), Options (what they are for, not their defaults) and Known issues (bold symptom, then cause;
+  deleted once fixed). Leave out an empty Options or Known issues. `ReadmeTest` checks the app table and each page
+  against the bundle.
 
 ## Commits and releases
 

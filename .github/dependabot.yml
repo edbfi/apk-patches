@@ -25,7 +25,7 @@ updates:
     groups:
       patch-minor: { patterns: ["*"], update-types: [minor, patch] }
   - package-ecosystem: gradle
-    directory: /
+    directory: /revanced
     registries: [revanced]
     schedule: { interval: weekly, day: monday, time: "05:00", timezone: Europe/Copenhagen }
     cooldown: { exclude: ["*"] } # zizmor: ignore[dependabot-cooldown] -- updates merge on green without delay
