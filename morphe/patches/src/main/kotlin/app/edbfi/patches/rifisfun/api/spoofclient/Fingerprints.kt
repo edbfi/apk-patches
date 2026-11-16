@@ -2,6 +2,7 @@
 package app.edbfi.patches.rifisfun.api.spoofclient
 
 import app.edbfi.patches.rifisfun.misc.extension.EXTENSION
+import app.edbfi.patches.shared.hasFlags
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.methodCall
@@ -58,10 +59,10 @@ internal object AppTokenFingerprint : Fingerprint(
 
 /** Whether a request takes the app-only token, which the app gave only to oauth.reddit.com/api/v1/. */
 internal object AppTokenCheckFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Z",
     parameters = listOf("Landroid/net/Uri;"),
     strings = listOf("oauth.reddit.com", "/api/v1/"),
+    custom = { method, _ -> method.hasFlags(AccessFlags.PUBLIC, AccessFlags.STATIC) },
 )
 
 /** The class that builds the app's OkHttp clients, whose cache directory is `okhttp_cache`. */
@@ -75,10 +76,10 @@ internal object OkHttpClientFactoryFingerprint : Fingerprint(
  */
 internal object UserAgentFingerprint : Fingerprint(
     classFingerprint = OkHttpClientFactoryFingerprint,
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Ljava/lang/String;",
     parameters = listOf(),
     filters = listOf(methodCall(definingClass = "Landroid/content/Context;", name = "getString", parameters = listOf("I", "[Ljava/lang/Object;"))),
+    custom = { method, _ -> method.hasFlags(AccessFlags.PUBLIC, AccessFlags.STATIC) },
 )
 
 /** The extension method an option goes in. */
