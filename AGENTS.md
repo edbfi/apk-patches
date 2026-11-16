@@ -21,11 +21,11 @@ file.
 ## Local files
 
 - Never commit APKs, bundles, keystores or app code. Local files go in the main checkout's ignored `tmp/`:
-  `inputs/<app>-<version>/` for downloads, one app version per directory; `decompiled/<app>-<version>/`;
+  `inputs/<name>-<version>/` for downloads, one version per directory; `decompiled/<app>-<version>/`;
   `repos/` for other projects' clones; `tools/<purpose>/` for our scripts; `evidence/<feature>/`;
   `releases/<version>/` for release assets and notes; and `archive/` for finished work. `<app>` is as in its
-  package dir. `just patch` writes the current checkout's `tmp/out/`, and the device-test skill writes
-  `tmp/device-test/<run>/`.
+  package dir; `<name>` is `<app>` for our apps and the project's repo name otherwise (`revanced-manager`).
+  `just patch` writes the current checkout's `tmp/out/`, and the device-test skill writes `tmp/device-test/<run>/`.
 - Fetch an APK yourself with `agent-browser`, which runs cloakbrowser for Cloudflare's check, from APKMirror,
   APKPure or a similar site.
 
@@ -57,7 +57,7 @@ file.
 ## Test device
 
 - `just device` starts Android 15 in Docker ([Redroid](https://github.com/remote-android/redroid-doc), no VM or
-  KVM) and connects adb on loopback: `ANDROID_SERIAL=127.0.0.1:5600`. Agents share it: take turns.
+  KVM) and connects adb on loopback; use `ANDROID_SERIAL=127.0.0.1:5600`. Agents share it: take turns.
   `just device-reset` deletes it and its data, the owner's login included: run it only when the owner asks.
 - The host kernel needs binderfs and PSI; where PSI is off by default, boot with `psi=1`. On arm64 Linux, use a
   native `adb` on `PATH`, not the SDK's x86_64 one.
