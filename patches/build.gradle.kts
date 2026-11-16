@@ -11,10 +11,10 @@ patches {
     about {
         name = "edbfi patches"
         description = "ReVanced patches by edbfi"
-        source = "https://github.com/edbfi/revanced-patches"
+        source = "https://github.com/edbfi/apk-patches"
         author = "edbfi"
-        contact = "https://github.com/edbfi/revanced-patches/issues"
-        website = "https://github.com/edbfi/revanced-patches"
+        contact = "https://github.com/edbfi/apk-patches/issues"
+        website = "https://github.com/edbfi/apk-patches"
         license = "AGPL-3.0-or-later"
     }
 }

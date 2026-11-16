@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none" role="img" aria-labelledby="title desc">
-  <title id="title">revanced-patches</title>
+  <title id="title">apk-patches</title>
   <desc id="desc">Two offset patch tiles with a verification notch.</desc>
   <rect x="36" y="36" width="144" height="144" rx="28" fill="#164E63" stroke="#22D3EE" stroke-width="8"/>
   <path d="M64 64h88M64 88h48" stroke="#67E8F9" stroke-width="8" stroke-linecap="round"/>
