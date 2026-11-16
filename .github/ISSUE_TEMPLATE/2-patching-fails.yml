@@ -10,9 +10,9 @@ body:
       options:
         - label: I searched the open and closed issues for this problem.
           required: true
-        - label: I patched the app version its page in [Supported apps](https://github.com/edbfi/revanced-patches#supported-apps) lists as tested, with the latest release.
+        - label: I patched the app version its page in [Supported apps](https://github.com/edbfi/apk-patches#supported-apps) lists as tested, with the latest release.
           required: true
-        - label: I patched with only this bundle. In ReVanced Manager, that means unticking ReVanced Patches, as [Install](https://github.com/edbfi/revanced-patches#revanced-manager) says.
+        - label: I patched with only this bundle. In ReVanced Manager, that means unticking ReVanced Patches, as [Install](https://github.com/edbfi/apk-patches#revanced-manager) says.
           required: true
   - type: input
     id: app

@@ -8,7 +8,7 @@ body:
     attributes:
       label: Before you request
       options:
-        - label: I searched the open and closed issues, and the patches already in [Supported apps](https://github.com/edbfi/revanced-patches#supported-apps), for this request.
+        - label: I searched the open and closed issues, and the patches already in [Supported apps](https://github.com/edbfi/apk-patches#supported-apps), for this request.
           required: true
   - type: input
     id: app

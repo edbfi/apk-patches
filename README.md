@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="assets/revanced-patches.svg" alt="revanced-patches logo" width="160" height="160">
+  <img src="assets/apk-patches.svg" alt="apk-patches logo" width="160" height="160">
 </p>
-<h1 align="center">revanced-patches</h1>
+<h1 align="center">apk-patches</h1>
 <p align="center"><strong>Signed ReVanced patches for Android apps.</strong></p>
 <p align="center">
-  <a href="https://github.com/edbfi/revanced-patches/blob/main/LICENSE">
+  <a href="https://github.com/edbfi/apk-patches/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/license-AGPL--3.0--or--later-blue?style=flat" alt="License: AGPL-3.0-or-later">
   </a>
   <a href="https://github.com/JetBrains/kotlin" title="Kotlin source">
@@ -16,7 +16,7 @@
   <a href="https://android.googlesource.com/platform/manifest" title="Android Open Source Project source manifest">
     <img src="https://img.shields.io/badge/Android-3DDC84?style=flat&amp;logo=android&amp;logoColor=black" alt="Android">
   </a>
-  <a href="https://github.com/edbfi/revanced-patches/actions/workflows/ci.yml?query=branch%3Amain"><img src="https://img.shields.io/github/actions/workflow/status/edbfi/revanced-patches/ci.yml?branch=main&amp;event=push&amp;label=CI&amp;style=flat" alt="CI"></a>
+  <a href="https://github.com/edbfi/apk-patches/actions/workflows/ci.yml?query=branch%3Amain"><img src="https://img.shields.io/github/actions/workflow/status/edbfi/apk-patches/ci.yml?branch=main&amp;event=push&amp;label=CI&amp;style=flat" alt="CI"></a>
 </p>
 
 
@@ -40,7 +40,7 @@ versions are untested.
 Add a patches source with this URL:
 
 ```text
-https://github.com/edbfi/revanced-patches/releases/latest/download/patches-bundle.json
+https://github.com/edbfi/apk-patches/releases/latest/download/patches-bundle.json
 ```
 
 Manager also selects the patches its built-in ReVanced Patches has for the same app, and some of them change the same
@@ -52,12 +52,12 @@ Manager doesn't verify signatures. To check a bundle, use the CLI.
 ### ReVanced CLI
 
 Download `patches-X.Y.Z.rvp`, `.rvp.asc` and `.rvp.sigstore.json` from a
-[release](https://github.com/edbfi/revanced-patches/releases) and the [public key](keys/release-signing.asc), then:
+[release](https://github.com/edbfi/apk-patches/releases) and the [public key](keys/release-signing.asc), then:
 
 ```sh
 java -jar revanced-cli.jar patch \
   -p patches-X.Y.Z.rvp -k release-signing.asc -s patches-X.Y.Z.rvp.asc \
-  -a patches-X.Y.Z.rvp.sigstore.json -r edbfi/revanced-patches \
+  -a patches-X.Y.Z.rvp.sigstore.json -r edbfi/apk-patches \
   app.apk
 ```
 
@@ -65,14 +65,14 @@ The key's fingerprint is `7B40 A51F C15C 376F 09D1  6979 893C 92F2 3E64 7FC8`.
 
 ## Report a problem
 
-[Open an issue](https://github.com/edbfi/revanced-patches/issues/new/choose) with the form that fits: **Patching
+[Open an issue](https://github.com/edbfi/apk-patches/issues/new/choose) with the form that fits: **Patching
 fails** if patching stops or the APK won't install, **Bug in a patched app** if the app misbehaves after patching.
 Both forms require a log, so have it ready; the form says where to find it. Problems with ReVanced Manager, the CLI
 or ReVanced's own patches go to [ReVanced](https://github.com/ReVanced).
 
 ## Request a patch
 
-Use the [Patch request](https://github.com/edbfi/revanced-patches/issues/new?template=3-patch-request.yml) form, for a
+Use the [Patch request](https://github.com/edbfi/apk-patches/issues/new?template=3-patch-request.yml) form, for a
 new app or one already supported.
 
 ## Contribute
