@@ -1,7 +1,11 @@
 # Agent instructions
 
-ReVanced patches by edbfi: one bundle, `patches-<version>.rvp`, with patches for several Android apps. Its Gradle
-build is `revanced/`; paths below are relative to it unless they start at the repository root.
+Patches by edbfi for several Android apps, in two bundles from two independent Gradle builds: `revanced/` builds
+the ReVanced bundle, `patches-<version>.rvp`, and `morphe/` the Morphe bundle, `patches-<version>.mpp`. Nothing is
+shared between them at build time, and a change to one never needs a change to the other. The rules below name
+`revanced/`'s paths relative to it; `morphe/` has the same shape and follows the same rules with Morphe's API
+(`patch` with `execute {}`, `Fingerprint` objects in `Fingerprints.kt`, each matched with `matchSingle()`), `.mpe`
+extension files and its pages in `docs/morphe/`.
 CI comes from [edbfi-ci](https://github.com/edbfi/edbfi-ci); its rules apply here. `CLAUDE.md` is a symlink to this
 file.
 
@@ -49,10 +53,11 @@ file.
 
 ## Commands
 
-- `just check` runs what CI runs, prek hooks included. `just build` builds the bundle. `just revanced-patch <apk>`
-  applies it with the pinned revanced-cli into `tmp/out/`, signed with the main checkout's
-  `tmp/test-signing.keystore`, so every worktree's build installs over the last with `adb install -r` and keeps the
-  app's data.
+- `just check` runs what CI runs, prek hooks included. `just build` builds both bundles; `just revanced-check`,
+  `just morphe-check` and their `-build` recipes do one. `just revanced-patch <apk>` applies the ReVanced bundle
+  with the pinned revanced-cli into `tmp/out/`, and `just morphe-patch <apk>` the Morphe bundle with the pinned
+  morphe-desktop CLI. Both sign with the main checkout's `tmp/test-signing.keystore`, so every build of either
+  ecosystem installs over the last with `adb install -r` and keeps the app's data.
 - Gradle needs `githubPackagesUsername` and `githubPackagesPassword` (a classic PAT with only `read:packages`)
   in `~/.gradle/gradle.properties`. Its daemon runs on JDK 25 (`gradle/gradle-daemon-jvm.properties`); point
   `org.gradle.java.installations.paths` there at a JDK 25 that Gradle doesn't find by itself, such as Homebrew's.
