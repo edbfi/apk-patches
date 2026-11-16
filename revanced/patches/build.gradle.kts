@@ -46,9 +46,11 @@ tasks.test {
     val bundle = tasks.jar.flatMap { it.archiveFile }
     inputs.file(bundle)
     jvmArgumentProviders.add(CommandLineArgumentProvider { listOf("-Dpatches.bundle=${bundle.get().asFile}") })
-    // ReadmeTest checks the README's app table, and each app's page in docs/, against the bundle.
-    val readme = rootProject.layout.projectDirectory.file("README.md")
+    // ReadmeTest checks the README's app table, and each app's page in docs/revanced/, against the bundle. Both sit
+    // at the repository root, one level above this build.
+    val repository = rootProject.layout.projectDirectory.dir("..")
+    val readme = repository.file("README.md")
     inputs.file(readme)
-    inputs.dir(rootProject.layout.projectDirectory.dir("docs"))
+    inputs.dir(repository.dir("docs/revanced"))
     jvmArgumentProviders.add(CommandLineArgumentProvider { listOf("-Dreadme.file=${readme.asFile}") })
 }

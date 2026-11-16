@@ -106,6 +106,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with: { cache-disabled: true }
       - run: ./gradlew --no-build-cache "-Pversion=$VERSION" check :patches:buildAndroid
+        working-directory: revanced
         env:
           ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ github.actor }}
           ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ github.token }}
@@ -113,7 +114,7 @@ jobs:
         name: Check the bundle
         run: |
           set -euo pipefail
-          rvp="patches/build/libs/patches-$VERSION.rvp"
+          rvp="revanced/patches/build/libs/patches-$VERSION.rvp"
           # ReVanced Manager rejects a bundle without dex code.
           unzip -l "$rvp" | grep -q ' classes.dex$' || { echo "::error::$rvp holds no classes.dex"; exit 1; }
           mkdir candidate && cp "$rvp" candidate/

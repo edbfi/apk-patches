@@ -13,7 +13,7 @@ local.properties
 *.keystore
 *.jks
 
-# rea install (just setup-rea) and local tools (just patch)
+# rea install (just setup-rea) and local tools (just revanced-patch, just device)
 /.rea/install/
 /.tools/
 

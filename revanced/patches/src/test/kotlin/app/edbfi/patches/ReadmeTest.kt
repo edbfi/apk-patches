@@ -9,8 +9,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
-/** The README's app table and each app's page in docs/ state facts the bundle holds; this keeps them equal. */
+/**
+ * The README's app table, in its ReVanced column, and each app's page in docs/revanced/ state facts the bundle holds;
+ * this keeps them equal. Other columns and docs/ folders belong to other bundles.
+ */
 class ReadmeTest {
+    private val column = "ReVanced"
+    private val docs = "docs/revanced"
+
     private val patches: Set<Patch> =
         loadPatches(File(System.getProperty("patches.bundle"))) { file, error ->
             throw AssertionError("Couldn't load patches from $file", error)
@@ -23,10 +29,11 @@ class ReadmeTest {
     private data class Row(val name: String, val description: String, val default: Boolean)
 
     /**
-     * Rows of the first table after the line [heading], within [lines], cells trimmed, once its header row is [header]
-     * and a separator row follows (else GitHub doesn't render a table). Cells are split on " | ", so none may hold a pipe.
+     * Rows of the first table after the line [heading], within [lines], cells trimmed, once its header row passes
+     * [header] and a separator row follows (else GitHub doesn't render a table). Cells are split on " | ", so none may
+     * hold a pipe. The header row comes first.
      */
-    private fun table(heading: String, header: List<String>, lines: List<String> = readme): List<List<String>> {
+    private fun table(heading: String, lines: List<String>, header: (List<String>) -> Boolean): List<List<String>> {
         val start = lines.indexOf(heading).takeIf { it >= 0 } ?: fail("No \"$heading\" where expected")
         val rows =
             lines.drop(start + 1)
@@ -34,14 +41,18 @@ class ReadmeTest {
                 .dropWhile { !it.startsWith("|") }
                 .takeWhile { it.startsWith("|") }
                 .map { line -> line to line.trim().removePrefix("|").removeSuffix("|").split(" | ").map { it.trim() } }
-        if (rows.firstOrNull()?.second != header) fail("The table under \"$heading\" must start with the header $header")
-        if (rows.getOrNull(1)?.second?.let { cells -> cells.size == header.size && cells.all { it.matches(Regex(":?-{3,}:?")) } } != true) {
+        val head = rows.firstOrNull()?.second ?: fail("No table under \"$heading\"")
+        if (!header(head)) fail("The table under \"$heading\" has an unexpected header: $head")
+        if (rows.getOrNull(1)?.second?.let { cells -> cells.size == head.size && cells.all { it.matches(Regex(":?-{3,}:?")) } } != true) {
             fail("The table under \"$heading\" needs a separator row after its header")
         }
-        return rows.drop(2).map { (line, cells) ->
-            cells.takeIf { it.size == header.size } ?: fail("Table row under \"$heading\" needs ${header.size} cells: $line")
+        return listOf(head) + rows.drop(2).map { (line, cells) ->
+            cells.takeIf { it.size == head.size } ?: fail("Table row under \"$heading\" needs ${head.size} cells: $line")
         }
     }
+
+    /** Rows of a table whose header is exactly [header], without the header. */
+    private fun table(heading: String, header: List<String>, lines: List<String>): List<List<String>> = table(heading, lines) { it == header }.drop(1)
 
     /** The backticked values of a cell that holds nothing else: `a` or `a`, `b`. */
     private fun code(cell: String): List<String> {
@@ -51,17 +62,18 @@ class ReadmeTest {
     }
 
     // Lazy, so a malformed table fails the test that reads it with its message, not the class's construction.
+    // A cell in this bundle's column is "—" for an app it doesn't patch, else "[N patches](docs/revanced/<app>.md)".
     private val apps by lazy {
-        table("## Supported apps", listOf("App", "Package", "Patches")).map { (app, pkg, count) ->
-            val link = Regex("""^\[(.+)]\((docs/[a-z0-9]+\.md)\)$""").find(app) ?: fail("Not a link to a docs/<app>.md page: $app")
-            val (name, path) = link.destructured
+        val rows = table("## Supported apps", readme) { it.take(2) == listOf("App", "Package") && column in it }
+        val at = rows.first().indexOf(column)
+        rows.drop(1).filter { it[at] != "—" }.map { row ->
+            val (name, pkg) = row
+            val link = Regex("""^\[(\d+) (patch|patches)]\(($docs/[a-z0-9]+\.md)\)$""").find(row[at])
+                ?: fail("$name: the $column cell must be — or a link like [2 patches]($docs/<app>.md), not ${row[at]}")
+            val (count, noun, path) = link.destructured
+            if ((count == "1") != (noun == "patch")) fail("$name: write \"1 patch\" or \"N patches\", not \"$count $noun\"")
             val page = readmeFile.resolveSibling(path).takeIf { it.isFile } ?: fail("$name links to $path, which doesn't exist")
-            App(
-                name,
-                code(pkg).singleOrNull() ?: fail("Package cell needs one `package`: $pkg"),
-                count.toIntOrNull() ?: fail("$name: Patches must be a number, not \"$count\""),
-                page,
-            )
+            App(name, code(pkg).singleOrNull() ?: fail("Package cell needs one `package`: $pkg"), count.toInt(), page)
         }
     }
 
@@ -77,8 +89,8 @@ class ReadmeTest {
         assertEquals(apps.map { it.page }.distinct().size, apps.size, "Supported apps links a page twice")
         assertEquals(packages, apps.map { it.pkg }.toSet(), "Supported apps packages")
         for (app in apps) assertEquals(patchesOf(app).size, app.count, "${app.name}: Patches count")
-        val pages = readmeFile.resolveSibling("docs").listFiles { file -> file.extension == "md" }.orEmpty().map { it.canonicalFile }.toSet()
-        assertEquals(pages, apps.map { it.page.canonicalFile }.toSet(), "Pages in docs/ the README doesn't link, or the reverse")
+        val pages = readmeFile.resolveSibling(docs).listFiles { file -> file.extension == "md" }.orEmpty().map { it.canonicalFile }.toSet()
+        assertEquals(pages, apps.map { it.page.canonicalFile }.toSet(), "Pages in $docs/ the README doesn't link, or the reverse")
     }
 
     @Test

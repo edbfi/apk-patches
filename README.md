@@ -24,10 +24,10 @@
 
 ## Supported apps
 
-| App | Package | Patches |
+| App | Package | ReVanced |
 | --- | --- | --- |
-| [rif is fun](docs/rifisfun.md) | `com.andrewshu.android.reddit` | 12 |
-| [Sync for Reddit](docs/syncforreddit.md) | `com.laurencedawson.reddit_sync` | 15 |
+| rif is fun | `com.andrewshu.android.reddit` | [12 patches](docs/revanced/rifisfun.md) |
+| Sync for Reddit | `com.laurencedawson.reddit_sync` | [15 patches](docs/revanced/syncforreddit.md) |
 
 Each app's page lists its patches, their options and known issues, and the app version they were tested on. Patch
 that version: ReVanced Manager and the CLI skip these patches on other versions unless you force them, and other

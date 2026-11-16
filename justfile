@@ -22,18 +22,24 @@ aosp_test_cert_sha256 := "a4384ba815b9499a5ce349b4e33c1755278873fe2eac150a068823
 default:
     @just --list
 
-# Run what CI runs: the prek hooks, then lint, test and build the bundle
-check:
+# Run what CI runs: the prek hooks, then lint, test and build each bundle
+check: && revanced-check
     prek run --all-files --hook-stage manual
-    ./gradlew check :patches:buildAndroid
 
-# Build patches/build/libs/patches-<version>.rvp
-build:
-    ./gradlew :patches:buildAndroid
+# Build every bundle
+build: revanced-build
 
-# Apply the locally built bundle to an APK; the result lands in tmp/out/
+# Lint, test and build the ReVanced bundle
+revanced-check:
+    cd revanced && ./gradlew check :patches:buildAndroid
+
+# Build revanced/patches/build/libs/patches-<version>.rvp
+revanced-build:
+    cd revanced && ./gradlew :patches:buildAndroid
+
+# Apply the locally built ReVanced bundle to an APK with revanced-cli; the result lands in tmp/out/
 [positional-arguments]
-patch apk *args: build
+revanced-patch apk *args: revanced-build
     #!/usr/bin/env bash
     set -euo pipefail
     apk=$1
@@ -42,13 +48,13 @@ patch apk *args: build
     just _fetch "https://github.com/ReVanced/revanced-cli/releases/download/v{{ cli_version }}/revanced-cli-{{ cli_version }}-all.jar" "$cli" {{ cli_sha256 }}
     # The aapt2 inside the CLI is x86_64-only: on arm64 Linux it runs under qemu-user-binfmt.
     if [[ "$(uname -sm)" == "Linux aarch64" ]]; then export QEMU_LD_PREFIX=/usr/x86_64-linux-gnu; fi
-    version=$(sed -n 's/^version=//p' gradle.properties)
+    version=$(sed -n 's/^version=//p' revanced/gradle.properties)
     mkdir -p tmp/out
     # One signing key for every worktree, so a patched app installed earlier updates in place and keeps its data.
     keystore=$(cd "$(git rev-parse --path-format=absolute --git-common-dir)/.." && pwd)/tmp/test-signing.keystore
     mkdir -p "$(dirname "$keystore")"
     # -b: a local build is unsigned, so skip signature verification.
-    "${JAVA_HOME:+$JAVA_HOME/bin/}java" -jar "$cli" patch -b -p "patches/build/libs/patches-$version.rvp" \
+    "${JAVA_HOME:+$JAVA_HOME/bin/}java" -jar "$cli" patch -b -p "revanced/patches/build/libs/patches-$version.rvp" \
         --keystore "$keystore" -o "tmp/out/$(basename "$apk" .apk)-patched.apk" "$@" "$apk"
 
 # Start the test device (Android 15 in Docker) and connect adb to it on loopback
