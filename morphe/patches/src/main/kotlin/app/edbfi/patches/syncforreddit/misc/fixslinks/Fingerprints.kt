@@ -4,8 +4,8 @@
 
 package app.edbfi.patches.syncforreddit.misc.fixslinks
 
+import app.edbfi.patches.shared.hasFlags
 import app.edbfi.patches.syncforreddit.declaredIn
-import app.edbfi.patches.syncforreddit.hasFlags
 import app.morphe.patcher.Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 

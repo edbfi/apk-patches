@@ -2,12 +2,12 @@
 package app.edbfi.patches.syncforreddit.misc.enableultra
 
 import app.edbfi.patches.shared.Edit
+import app.edbfi.patches.shared.isCallTo
 import app.edbfi.patches.shared.returnEarlyEdit
 import app.edbfi.patches.shared.rewriteStrings
 import app.edbfi.patches.shared.string
 import app.edbfi.patches.syncforreddit.SYNC_FOR_REDDIT
 import app.edbfi.patches.syncforreddit.SourceStringsFingerprint
-import app.edbfi.patches.syncforreddit.isCallTo
 import app.edbfi.patches.syncforreddit.misc.extension.extensionPatch
 import app.edbfi.patches.syncforreddit.misc.extension.extensionSwitch
 import app.edbfi.patches.syncforreddit.misc.imageclient.imageClientHookPatch

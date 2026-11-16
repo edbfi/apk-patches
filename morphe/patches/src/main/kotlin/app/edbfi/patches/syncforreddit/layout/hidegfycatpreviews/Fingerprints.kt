@@ -4,9 +4,9 @@
 
 package app.edbfi.patches.syncforreddit.layout.hidegfycatpreviews
 
+import app.edbfi.patches.shared.hasFlags
+import app.edbfi.patches.shared.isCallTo
 import app.edbfi.patches.syncforreddit.declaredIn
-import app.edbfi.patches.syncforreddit.hasFlags
-import app.edbfi.patches.syncforreddit.isCallTo
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags

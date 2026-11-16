@@ -4,9 +4,9 @@
 
 package app.edbfi.patches.syncforreddit.api.spoofclient
 
+import app.edbfi.patches.shared.hasFlags
 import app.edbfi.patches.shared.string
 import app.edbfi.patches.syncforreddit.declaredIn
-import app.edbfi.patches.syncforreddit.hasFlags
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.string
