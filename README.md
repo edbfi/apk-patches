@@ -63,6 +63,18 @@ java -jar revanced-cli.jar patch \
 
 The key's fingerprint is `7B40 A51F C15C 376F 09D1  6979 893C 92F2 3E64 7FC8`.
 
+## Report a problem
+
+[Open an issue](https://github.com/edbfi/revanced-patches/issues/new/choose) with the form that fits: **Patching
+fails** if patching stops or the APK won't install, **Bug in a patched app** if the app misbehaves after patching.
+Both forms require a log, so have it ready; the form says where to find it. Problems with ReVanced Manager, the CLI
+or ReVanced's own patches go to [ReVanced](https://github.com/ReVanced).
+
+## Request a patch
+
+Use the [Patch request](https://github.com/edbfi/revanced-patches/issues/new?template=3-patch-request.yml) form, for a
+new app or one already supported.
+
 ## Contribute
 
 Build commands, patch rules and commit conventions are in [AGENTS.md](AGENTS.md).
