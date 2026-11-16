@@ -50,9 +50,28 @@ jobs:
         env:
           ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ github.actor }}
           ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ github.token }}
+  # The Morphe bundle's own Gradle build, in morphe/.
+  morphe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # packages: read lets GITHUB_TOKEN resolve Morphe's plugin and patcher from GitHub Packages.
+    permissions: { contents: read, packages: read }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      # The JDK in morphe/gradle/gradle-daemon-jvm.properties.
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with: { distribution: temurin, java-version: "25" }
+      # Also validates the wrapper jar.
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - run: ./gradlew check :patches:buildAndroid
+        working-directory: morphe
+        env:
+          ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ github.actor }}
+          ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ github.token }}
   ci-ok:
     if: always()
-    needs: [checks, revanced]
+    needs: [checks, revanced, morphe]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}

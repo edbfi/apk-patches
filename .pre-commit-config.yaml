@@ -10,7 +10,7 @@ repos:
       - id: end-of-file-fixer
       - id: mixed-line-ending
         args: [--fix=lf]
-        exclude: ^revanced/gradlew\.bat$  # CRLF by .gitattributes
+        exclude: (^|/)gradlew\.bat$  # CRLF by .gitattributes
       - id: check-merge-conflict
       - id: check-case-conflict
       - id: check-added-large-files
@@ -69,4 +69,4 @@ repos:
         name: No APKs, bundles or keystores
         language: fail
         entry: "APKs, built bundles and keystores never go in the repo; keep them in tmp/."
-        files: (?i)\.(apk|apks|xapk|apkm|rvp|rve|dex|keystore|jks)$
+        files: (?i)\.(apk|apks|xapk|apkm|rvp|rve|mpp|mpe|dex|keystore|jks)$
