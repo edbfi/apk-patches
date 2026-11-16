@@ -1,6 +1,6 @@
 # Sync for Reddit
 
-Patches for Sync for Reddit. To install them, see the [README](../README.md#install).
+Patches for Sync for Reddit. To install them, see the [README](../../README.md#install).
 
 ## Tested version
 
