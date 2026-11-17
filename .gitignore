@@ -10,6 +10,11 @@ local.properties
 *.xapk
 *.apkm
 *.rvp
+*.rve
+*.mpp
+*.mpe
+# The Morphe bundle signing key
+morphe-signing.key
 *.keystore
 *.jks
 

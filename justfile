@@ -3,6 +3,9 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 
 cli_version := "6.0.0"
 cli_sha256 := "c25549bc17d59d2eb94fa5f86e60e9b77a02772ca88f7050f8f1276f923a9958"
+# The Morphe CLI morphe-patch runs.
+morphe_cli_version := "2.2.0"
+morphe_cli_sha256 := "5ca0320ee05481df1ae3afd2f003bba3ff994d11d1f66ae48811ced71355e4fe"
 jadx_sha256 := "6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75"
 
 # Redroid (Android in a container, no VM). Android 15: Redroid's 16 image needs ashmem, which new kernels lack.
@@ -23,11 +26,11 @@ default:
     @just --list
 
 # Run what CI runs: the prek hooks, then lint, test and build each bundle
-check: && revanced-check
+check: && revanced-check morphe-check
     prek run --all-files --hook-stage manual
 
 # Build every bundle
-build: revanced-build
+build: revanced-build morphe-build
 
 # Lint, test and build the ReVanced bundle
 revanced-check:
@@ -56,6 +59,40 @@ revanced-patch apk *args: revanced-build
     # -b: a local build is unsigned, so skip signature verification.
     "${JAVA_HOME:+$JAVA_HOME/bin/}java" -jar "$cli" patch -b -p "revanced/patches/build/libs/patches-$version.rvp" \
         --keystore "$keystore" -o "tmp/out/$(basename "$apk" .apk)-patched.apk" "$@" "$apk"
+
+# Lint, test and build the Morphe bundle
+morphe-check:
+    cd morphe && ./gradlew check :patches:buildAndroid
+
+# Build morphe/patches/build/libs/patches-<version>.mpp, unsigned
+morphe-build:
+    cd morphe && ./gradlew :patches:buildAndroid
+
+# Apply the locally built Morphe bundle to an APK with the Morphe CLI; the result lands in tmp/out/
+[positional-arguments]
+morphe-patch apk *args: morphe-build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    apk=$1
+    shift
+    cli=.tools/morphe-desktop-{{ morphe_cli_version }}-all.jar
+    just _fetch "https://github.com/MorpheApp/morphe-desktop/releases/download/v{{ morphe_cli_version }}/morphe-desktop-{{ morphe_cli_version }}-all.jar" "$cli" {{ morphe_cli_sha256 }}
+    version=$(sed -n 's/^version=//p' morphe/gradle.properties)
+    mkdir -p tmp/out
+    # The CLI keeps its data next to its jar unless told otherwise.
+    export MORPHE_DATA_DIR=.tools/morphe-data
+    # The same key revanced-patch signs with (revanced-cli's defaults: alias "ReVanced Key", empty passwords), so
+    # either ecosystem's build installs over the other's with adb install -r. The CLI may write to the keystore it
+    # is given, so it gets a copy.
+    keystore=$(cd "$(git rev-parse --path-format=absolute --git-common-dir)/.." && pwd)/tmp/test-signing.keystore
+    [[ -f "$keystore" ]] || { echo "No $keystore yet: run just revanced-patch once to create it." >&2; exit 1; }
+    copy=$(mktemp)
+    trap 'rm -f "$copy"' EXIT
+    cp "$keystore" "$copy"
+    # A local build is unsigned, and the CLI checks only downloaded bundles' signatures.
+    "${JAVA_HOME:+$JAVA_HOME/bin/}java" -jar "$cli" patch -p "morphe/patches/build/libs/patches-$version.mpp" \
+        --keystore "$copy" --keystore-entry-alias "ReVanced Key" --keystore-entry-password= \
+        -o "tmp/out/$(basename "$apk" .apk)-morphe.apk" "$@" "$apk"
 
 # Start the test device (Android 15 in Docker) and connect adb to it on loopback
 device:
