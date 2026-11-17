@@ -180,28 +180,33 @@ jobs:
   # The key signs only the bundle's SHA-256, so this job takes no file in. Morphe's signature covers
   # `MorpheSig1` and the SHA-256 of the unsigned bundle, which is all it needs.
   morphe-sign:
-    needs: [verify, morphe-build]
+    # After CI, so the key never signs a commit that failed it.
+    needs: [verify, ci, morphe-build]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: { contents: read }
     outputs:
       signature: ${{ steps.sign.outputs.signature }}
     steps:
-      - id: sign
-        name: Sign the bundle's SHA-256
+      # The script and the public key come from the released commit, which verify found on main.
+      - name: Fetch the signing script and the public key
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          for file in scripts/morphe-sign.sh morphe/morphe-signing.pub; do
+            gh api -H 'Accept: application/vnd.github.raw' \
+              "repos/$GH_REPO/contents/$file?ref=$GITHUB_SHA" > "$RUNNER_TEMP/$(basename "$file")"
+          done
+      - id: sign
+        name: Sign the bundle's SHA-256
+        env:
           SHA256: ${{ needs.morphe-build.outputs.sha256 }}
           MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
         run: |
           set -euo pipefail
           [[ "$SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::Malformed SHA-256"; exit 1; }
-          # The script and the public key come from the released commit, which verify found on main.
-          for file in scripts/morphe-sign.sh morphe/morphe-signing.pub; do
-            gh api -H 'Accept: application/vnd.github.raw' \
-              "repos/$GH_REPO/contents/$file?ref=$GITHUB_SHA" > "$RUNNER_TEMP/$(basename "$file")"
-          done
           signature="$(bash "$RUNNER_TEMP/morphe-sign.sh" signature "$SHA256" "$RUNNER_TEMP/morphe-signing.pub")"
           echo "signature=$signature" >> "$GITHUB_OUTPUT"
 
@@ -398,6 +403,8 @@ jobs:
         run: |
           set -euo pipefail
           bash "$RUNNER_TEMP/release-virustotal.sh" scan "$RVP" "$RUNNER_TEMP/virustotal-rvp.md"
+          # Each run spaces only its own requests; the public API allows 4 a minute.
+          sleep 15
           bash "$RUNNER_TEMP/release-virustotal.sh" scan "$MPP" "$RUNNER_TEMP/virustotal-mpp.md"
           # One block, one table: the .mpp's row goes after the .rvp's.
           row="$(grep -E '^\| `patches-' "$RUNNER_TEMP/virustotal-mpp.md")"
@@ -503,7 +510,7 @@ jobs:
             fi
             git -C "$src" -c core.hooksPath=/dev/null \
               -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-              commit -q --signoff -m "chore: point Morphe's feed at $VERSION"
+              commit -q --signoff -m "chore(morphe): point the feed at $VERSION"
             if err="$(git -C "$src" -c core.hooksPath=/dev/null push -q origin HEAD:refs/heads/main 2>&1)"; then
               echo "Pushed Morphe's feed for $VERSION."
               exit 0

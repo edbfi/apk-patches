@@ -35,7 +35,7 @@ signature() {
     # builtin, so the key never appears in a process's arguments.
     {
         printf '\x30\x2e\x02\x01\x00\x30\x05\x06\x03\x2b\x65\x70\x04\x22\x04\x20'
-        printf '%s' "$MORPHE_SIGNING_KEY" | base64 -d
+        printf '%s' "${MORPHE_SIGNING_KEY//[[:space:]]/}" | base64 -d
     } >"$tmp/key.der" 2>/dev/null || die "MORPHE_SIGNING_KEY is not Base64"
     unset MORPHE_SIGNING_KEY # so no command below inherits it
     [[ $(stat -c %s "$tmp/key.der") -eq 48 ]] || die "MORPHE_SIGNING_KEY is not a raw 32-byte Ed25519 key"
