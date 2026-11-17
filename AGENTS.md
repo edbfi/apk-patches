@@ -140,8 +140,9 @@ Both trees follow these rules; their sections add each patcher's API rules.
 
 ## Morphe (`morphe/`)
 
-- Morphe Patcher 2.4.0 API only: `patch(...)` with `execute {}`. A feature's `Fingerprint` objects go in
-  `Fingerprints.kt` beside its `<Feature>Patch.kt`; code one app's fingerprints share goes in `<app>/`.
+- Morphe Patcher API only, at the version `gradle/libs.versions.toml` pins: `patch(...)` with `execute {}`. A
+  feature's `Fingerprint` objects go in `Fingerprints.kt` beside its `<Feature>Patch.kt`; code one app's fingerprints
+  share goes in `<app>/`.
 - Resolve every lookup to exactly one match: `matchSingle()`, or `matchAll()`/`matchAllOrNull()` and an explicit
   check of the count. Never take the default first match.
 - A fingerprint's `accessFlags` must equal the method's flags exactly. Where only some flags matter, check them with

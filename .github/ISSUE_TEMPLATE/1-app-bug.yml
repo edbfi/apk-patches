@@ -12,7 +12,7 @@ body:
           required: true
         - label: I patched the app version its page in [Supported apps](https://github.com/edbfi/apk-patches#supported-apps) lists as tested, with the latest release.
           required: true
-        - label: I patched with only this bundle. In ReVanced Manager, that means unticking ReVanced Patches, as [Install](https://github.com/edbfi/apk-patches#revanced-manager) says; in Morphe Manager, selecting no other source's patches for the app.
+        - label: I patched with only this bundle. In ReVanced Manager, that means unticking ReVanced Patches, as [Install](https://github.com/edbfi/apk-patches#revanced-manager) says.
           required: true
   - type: dropdown
     id: ecosystem
