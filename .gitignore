@@ -13,7 +13,7 @@ local.properties
 *.rve
 *.mpp
 *.mpe
-# The Morphe bundle signing key
+# The Morphe bundle signing key (morphe/morphe-signing.pub is public and committed)
 morphe-signing.key
 *.keystore
 *.jks
