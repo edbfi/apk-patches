@@ -1,6 +1,7 @@
 # rif is fun
 
-Patches for rif is fun for Reddit, for use with Morphe. To install them, see the [README](../../README.md#install).
+Patches for rif is fun for Reddit, for use with Morphe. To install them, see
+[Morphe Manager](../../README.md#morphe-manager) or [Morphe CLI](../../README.md#morphe-cli).
 
 ## Tested version
 
@@ -27,13 +28,21 @@ Patches for rif is fun for Reddit, for use with Morphe. To install them, see the
 
 ## Options
 
-- **Spoof client** uses [RedReader](https://github.com/QuantumBadger/RedReader)'s public Reddit client by default,
-  whose rate limit every RedReader user shares. If Reddit stops accepting it, set all three options to another
-  "installed app" client: `OAuth client ID`, `Redirect URI` (the one registered for that ID) and `User-Agent` (the one
-  that app sends). Logged out, the app then gets a new token by itself; a logged-in account's token belongs to the old
-  client, so remove the account and add it again.
-- **Fix Imgur** loads albums with the app's own Imgur client ID by default. If Imgur stops accepting it, set
-  `Imgur client ID` to another.
+### Spoof client
+
+`OAuth client ID`, `Redirect URI` and `User-Agent` set the Reddit client the app logs in with. Change them only if
+Reddit stops accepting [RedReader](https://github.com/QuantumBadger/RedReader)'s public client, whose rate limit every
+RedReader user shares:
+
+1. Set all three to another "installed app" client: its client ID, the redirect URI registered for that ID, and the
+   User-Agent that app sends.
+2. If you are logged in, remove the account and add it again: its token belongs to the old client. Logged out, the app
+   gets a new token by itself.
+
+### Fix Imgur
+
+`Imgur client ID` sets the Imgur client the app loads albums with. Change it only if Imgur stops accepting the app's
+own.
 
 ## Known issues
 
@@ -41,4 +50,4 @@ Patches for rif is fun for Reddit, for use with Morphe. To install them, see the
   ("You are not subscribed to this API").
 - **Synccit, new post notifications and downloadable themes are gone.** They need servers that no longer answer:
   synccit.com, and rif's rifnotifier.talklittle.com and redditthemes.com, so Enable golden platinum hides their settings,
-  menu items and theme list. Themes from a folder (Theme, Enable developer mode) still work.
+  menu items and theme list. Themes from a folder still work (**Theme**, **Enable developer mode**).
