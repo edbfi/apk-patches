@@ -3,7 +3,7 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 
 cli_version := "6.0.0"
 cli_sha256 := "c25549bc17d59d2eb94fa5f86e60e9b77a02772ca88f7050f8f1276f923a9958"
-# The release workflow reads these two to check the Morphe bundle's signature with Morphe's own verifier.
+# The Morphe CLI morphe-patch runs.
 morphe_cli_version := "2.2.0"
 morphe_cli_sha256 := "5ca0320ee05481df1ae3afd2f003bba3ff994d11d1f66ae48811ced71355e4fe"
 jadx_sha256 := "6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75"
