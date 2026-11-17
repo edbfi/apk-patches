@@ -22,8 +22,7 @@
   <a href="https://github.com/edbfi/apk-patches/actions/workflows/ci.yml?query=branch%3Amain"><img src="https://img.shields.io/github/actions/workflow/status/edbfi/apk-patches/ci.yml?branch=main&amp;event=push&amp;label=CI&amp;style=flat" alt="CI"></a>
 </p>
 
-Patches for Android apps, in two signed bundles: `patches-X.Y.Z.rvp` for [ReVanced](https://revanced.app) and
-`patches-X.Y.Z.mpp` for [Morphe](https://morphe.software). Each release carries both.
+Each release has two bundles: one for [ReVanced](https://revanced.app) and one for [Morphe](https://morphe.software).
 
 ## Supported apps
 
@@ -32,29 +31,42 @@ Patches for Android apps, in two signed bundles: `patches-X.Y.Z.rvp` for [ReVanc
 | rif is fun | `com.andrewshu.android.reddit` | [12 patches](docs/revanced/rifisfun.md) | [12 patches](docs/morphe/rifisfun.md) |
 | Sync for Reddit | `com.laurencedawson.reddit_sync` | [15 patches](docs/revanced/syncforreddit.md) | [15 patches](docs/morphe/syncforreddit.md) |
 
-Each link opens that bundle's page for the app: its patches, their options and known issues, and the app version they
-were tested on. The two bundles are built from separate code, so their patches can differ. Patch the tested version:
-ReVanced Manager and both CLIs skip these patches on other versions unless you force them, Morphe Manager asks you to
-confirm, and other versions are untested.
+Each link opens that bundle's page for the app: its patches, options, known issues and tested version. The two bundles
+are built from separate code, so their patches can differ.
+
+**Patch the tested version.** ReVanced Manager and both CLIs skip these patches on other versions unless you force
+them, and Morphe Manager asks you to confirm. Other versions are untested.
 
 ## Install
 
-Both managers read a feed named `patches-bundle.json`, but not the same one. The one at the root of this repository is
-Morphe's; ReVanced Manager can't read it. Use the URL each section below gives.
+Use a manager on your phone, or a CLI on a computer.
 
 ### ReVanced Manager
 
-Add a patches source with this URL:
+1. Add a patches source with this URL:
 
-```text
-https://github.com/edbfi/apk-patches/releases/latest/download/patches-bundle.json
-```
+   ```text
+   https://github.com/edbfi/apk-patches/releases/latest/download/patches-bundle.json
+   ```
 
-Manager also selects the patches its built-in ReVanced Patches has for the same app, and some of them change the same
-code as ours. Before you patch, turn on Settings → Advanced → **Allow changing patch selection and options**, then in
-**Select patches** untick **ReVanced Patches**.
+   Don't use the repository's own `patches-bundle.json`: it is Morphe's, and ReVanced Manager can't read it.
+2. Open **Settings → Advanced** and turn on **Allow changing patch selection and options**.
+3. Pick the app's APK. In **Select patches**, untick **ReVanced Patches**. Some of its patches change the same code as
+   ours.
+4. Patch and install.
 
-Manager doesn't verify signatures. To check a bundle, use the ReVanced CLI.
+### Morphe Manager
+
+1. Open **Sources**, tap **+**, paste this URL and tap **Add**:
+
+   ```text
+   https://github.com/edbfi/apk-patches
+   ```
+
+2. If ReVanced Manager or another tool patched the app you have installed, open **Settings → Signing key** and import
+   the key it was signed with. Otherwise Android makes you uninstall the app first, which erases its data.
+3. Pick the app's APK and patch. Morphe Manager's own **Morphe Patches** has no patches for these apps, so there is
+   nothing to untick.
 
 ### ReVanced CLI
 
@@ -68,24 +80,7 @@ java -jar revanced-cli.jar patch \
   app.apk
 ```
 
-The key's fingerprint is `7B40 A51F C15C 376F 09D1  6979 893C 92F2 3E64 7FC8`.
-
-### Morphe Manager
-
-Open **Sources**, tap **+**, paste this URL and tap **Add**:
-
-```text
-https://github.com/edbfi/apk-patches
-```
-
-Manager downloads the latest `patches-X.Y.Z.mpp`, checks the signature inside it and remembers the key. It won't install
-a later release signed by another key without asking you. The source's **Signed by** reads `bb0f 2749 5a09 70ea`.
-
-Manager's built-in Morphe Patches has no patches for these apps, so there is nothing to untick.
-
-Manager signs patched apps with its own key, and Android won't install them over an app signed with another, such as
-one ReVanced Manager patched: you would have to uninstall that first, which erases its data. To keep the data, import
-the key it was signed with in Settings → **Signing key** before you patch.
+The CLI checks the bundle's signature before it patches.
 
 ### Morphe CLI
 
@@ -96,10 +91,24 @@ Download `morphe-desktop-<version>-all.jar` from
 java -jar morphe-desktop-<version>-all.jar patch -p https://github.com/edbfi/apk-patches app.apk
 ```
 
-Like Manager, the CLI downloads the latest bundle, checks its signature and remembers the key. It also takes a
-downloaded file, `-p patches-X.Y.Z.mpp`, but doesn't check a file's signature. Check it yourself first: download
-`patches-X.Y.Z.mpp` and `.mpp.asc` from a [release](https://github.com/edbfi/apk-patches/releases) and the
-[public key](keys/release-signing.asc) (fingerprint above), then:
+- It downloads the latest bundle and checks its signature, as Morphe Manager does.
+- It also takes a downloaded file, `-p patches-X.Y.Z.mpp`, but doesn't check a file's signature.
+  [Verify it](#verify-a-download) first.
+- It signs patched APKs with signature scheme v2 only, so they install on Android 7.0 or later.
+
+## Verify a download
+
+Both bundles are signed with the [public key](keys/release-signing.asc), fingerprint
+`7B40 A51F C15C 376F 09D1  6979 893C 92F2 3E64 7FC8`.
+
+- **ReVanced CLI** checks the `.rvp` with the command above.
+- **Morphe Manager** and the **Morphe CLI** check the `.mpp` they download and remember its key. They won't install a
+  later release signed by another key without asking you. In Morphe Manager, the source's **Signed by** reads
+  `bb0f 2749 5a09 70ea`.
+- **ReVanced Manager** doesn't check signatures.
+
+To check a downloaded bundle yourself, download it and its `.asc` from a
+[release](https://github.com/edbfi/apk-patches/releases), and the [public key](keys/release-signing.asc), then:
 
 ```sh
 gpg --import release-signing.asc
@@ -107,21 +116,25 @@ gpg --verify patches-X.Y.Z.mpp.asc patches-X.Y.Z.mpp
 gh attestation verify patches-X.Y.Z.mpp --repo edbfi/apk-patches
 ```
 
-The CLI signs patched APKs with signature scheme v2 only, so they install on Android 7.0 or later.
+For the ReVanced bundle, use `.rvp` instead of `.mpp`. The last command needs the [GitHub CLI](https://cli.github.com).
 
 ## Report a problem
 
-[Open an issue](https://github.com/edbfi/apk-patches/issues/new/choose) with the form that fits: **Patching
-fails** if patching stops or the APK won't install, **Bug in a patched app** if the app misbehaves after patching.
-Both forms ask which bundle you patched with, ReVanced or Morphe, and require a log, so have it ready; the form says
-where to find it. Problems with ReVanced Manager, the ReVanced CLI or ReVanced's own patches go to
-[ReVanced](https://github.com/ReVanced), and those with Morphe Manager, the Morphe CLI or Morphe's own patches to
+[Open an issue](https://github.com/edbfi/apk-patches/issues/new/choose) with the form that fits:
+
+- **Patching fails**: patching stops, or the patched APK won't install.
+- **Bug in a patched app**: the app misbehaves after patching.
+
+Both forms ask which bundle you patched with and need a log; the form says where to find it.
+
+Problems with ReVanced Manager, the ReVanced CLI or ReVanced's own patches go to
+[ReVanced](https://github.com/ReVanced). Those with Morphe Manager, the Morphe CLI or Morphe's own patches go to
 [Morphe](https://github.com/MorpheApp).
 
 ## Request a patch
 
-Use the [Patch request](https://github.com/edbfi/apk-patches/issues/new?template=3-patch-request.yml) form, for a
-new app or one already supported, and say which bundle you want it in: ReVanced, Morphe or both.
+Use the [Patch request](https://github.com/edbfi/apk-patches/issues/new?template=3-patch-request.yml) form, for a new
+app or one already supported, and say which bundle you want it in: ReVanced, Morphe or both.
 
 ## Contribute
 
