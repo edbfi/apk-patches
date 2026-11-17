@@ -43,7 +43,8 @@ Use a manager on your phone, or a CLI on a computer.
 
 ### ReVanced Manager
 
-1. Add a patches source with this URL:
+1. Open **Patches**, tap the pencil button, then **Add patches**. Choose **Enter URL**, tap **Next**, paste this URL and
+   tap **Add**:
 
    ```text
    https://github.com/edbfi/apk-patches/releases/latest/download/patches-bundle.json
@@ -63,8 +64,15 @@ Use a manager on your phone, or a CLI on a computer.
    https://github.com/edbfi/apk-patches
    ```
 
-2. If ReVanced Manager or another tool patched the app you have installed, open **Settings → Signing key** and import
-   the key it was signed with. Otherwise Android makes you uninstall the app first, which erases its data.
+2. If ReVanced Manager patched the app you have installed, give Morphe Manager its key. Otherwise Android makes you
+   uninstall the app first, which erases its data.
+   - In ReVanced Manager, open **Settings → Import & export**. Under **Keystore**, note the alias and password, then tap
+     **Export**.
+   - In Morphe Manager, open **Settings → Signing key**, tap **Import**, pick the exported file and enter that alias
+     and password.
+
+   If another tool patched it, import the key that tool signed it with. This works one way only: ReVanced Manager can't
+   read the key Morphe Manager exports.
 3. Pick the app's APK and patch. Morphe Manager's own **Morphe Patches** has no patches for these apps, so there is
    nothing to untick.
 
