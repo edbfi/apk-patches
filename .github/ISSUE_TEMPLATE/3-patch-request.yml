@@ -42,6 +42,17 @@ body:
       placeholder: https://www.apkmirror.com/apk/…
     validations:
       required: true
+  - type: dropdown
+    id: ecosystem
+    attributes:
+      label: Bundles
+      description: Which bundles the patch should be in.
+      multiple: true
+      options:
+        - ReVanced
+        - Morphe
+    validations:
+      required: true
   - type: textarea
     id: request
     attributes:

@@ -1,6 +1,6 @@
 # rif is fun
 
-Patches for rif is fun for Reddit. To install them, see the [README](../../README.md#install).
+Patches for rif is fun for Reddit, for use with ReVanced. To install them, see the [README](../../README.md#install).
 
 ## Tested version
 
