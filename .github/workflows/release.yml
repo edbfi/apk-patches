@@ -407,8 +407,8 @@ jobs:
           sleep 15
           bash "$RUNNER_TEMP/release-virustotal.sh" scan "$MPP" "$RUNNER_TEMP/virustotal-mpp.md"
           # One block, one table: the .mpp's row goes after the .rvp's.
-          row="$(grep -E '^\| `patches-' "$RUNNER_TEMP/virustotal-mpp.md")"
-          [[ "$(grep -cE '^\| `patches-' "$RUNNER_TEMP/virustotal-rvp.md")" == 1 && "$(wc -l <<<"$row")" == 1 ]] ||
+          row="$(grep -E '^\| `patches-' "$RUNNER_TEMP/virustotal-mpp.md" || true)"
+          [[ "$(grep -cE '^\| `patches-' "$RUNNER_TEMP/virustotal-rvp.md" || true)" == 1 && -n "$row" && "$(wc -l <<<"$row")" == 1 ]] ||
             { echo "::error::Unexpected VirusTotal block"; exit 1; }
           ROW="$row" awk '{ print } /^\| `patches-/ { print ENVIRON["ROW"] }' "$RUNNER_TEMP/virustotal-rvp.md" > "$RUNNER_TEMP/virustotal.md"
           cat "$RUNNER_TEMP/virustotal.md" >> "$GITHUB_STEP_SUMMARY"
