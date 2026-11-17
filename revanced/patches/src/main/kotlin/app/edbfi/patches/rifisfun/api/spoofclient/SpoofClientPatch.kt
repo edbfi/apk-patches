@@ -84,7 +84,9 @@ val spoofClientPatch =
             val redirectEdits = redirectMethods.map { method -> method.rewriteStrings { if (it == APP_REDIRECT_URI) redirect else null } }
             val catches = redirectMethods.count { it.name == "shouldOverrideUrlLoading" }
             val exchanges = redirectMethods.count { method -> method.instructions.any { it.string == "authorization_code" } }
-            if (redirectEdits.sumOf { it.count } != 3 || catches != 1 || exchanges != 1 || redirectMethods.none { it.definingClass == authorize.definingClass && it.name == authorize.name }) {
+            // Count the literals, not the edits: a redirect URI equal to the app's own changes none of them.
+            val literals = redirectMethods.sumOf { method -> method.instructions.count { it.string == APP_REDIRECT_URI } }
+            if (literals != 3 || catches != 1 || exchanges != 1 || redirectMethods.none { it.definingClass == authorize.definingClass && it.name == authorize.name }) {
                 throw PatchException(
                     "Expected the redirect URI once each in the authorize URL, the WebView's redirect catch and the code exchange, " +
                         "found it in ${redirectMethods.map { "${it.definingClass}->${it.name}" }}",
