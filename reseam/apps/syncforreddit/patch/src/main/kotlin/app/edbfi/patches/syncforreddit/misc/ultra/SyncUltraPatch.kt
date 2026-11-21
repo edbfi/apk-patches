@@ -54,7 +54,6 @@ private fun XmlDocument.requirePreference(key: String, tag: String) =
 val syncUltra = patch(SyncPatchStrings.hideRetiredCloudBackup) {
     description(SyncPatchStrings.hideRetiredCloudBackupDescription)
     compatibleWith(syncForReddit)
-    enabledByDefault(true)
 
     execute {
         val backupXmlId = checkNotNull(resources.id("xml", BACKUP_XML)) { "Missing $BACKUP_XML" }

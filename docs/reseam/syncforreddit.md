@@ -35,4 +35,4 @@ patched APK so the app can request albums and covers. This option has no preset 
 
 - **Other discussions can miss posts or show posts with different links.** It uses Reddit search.
 - **Some Tenor thumbnails stay blank.** Sync contacts the public GIF page, which must publish a preview image.
-- **Sync Ultra still advertises cloud backup.** Its backup shortcut opens the Backup screen, where this patch hides the cloud controls.
+- **Sync Ultra still advertises cloud backup.** The Ultra settings page has its own cloud backup text and shortcut. The patch removes the controls on the Backup screen.
