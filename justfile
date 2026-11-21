@@ -14,6 +14,7 @@ jadx_sha256 := "6e5eacf500b64292bfb73c49797c1958f6ee44646e43e868039ae7feb573ff75
 # Redroid (Android in a container, no VM). Android 15: Redroid's 16 image needs ashmem, which new kernels lack.
 device_image := "redroid/redroid:15.0.0_64only-latest@sha256:b51bde9cef80f7bd7581148192f2b2f4d41f23c6344cfe88eceeb8ddd67490ee"
 device_serial := "127.0.0.1:5600"
+device_cpus := "2"
 
 # Reddit's login page rejects Redroid's WebView (Chromium 128). A Chromium snapshot build replaces it as an update,
 # re-signed with AOSP's public test key, which the built-in WebView is signed with. The snapshot bucket isn't an
@@ -243,11 +244,13 @@ device:
     # An existing device keeps the image and boot arguments it was created with; device-reset applies new ones.
     if docker container inspect revanced-device >/dev/null 2>&1; then
         docker start revanced-device >/dev/null
+        docker update --cpus={{ device_cpus }} revanced-device >/dev/null
     else
         data=${XDG_DATA_HOME:-$HOME/.local/share}/revanced-device
         mkdir -p "$data"
         # DNS is set so a host resolver that filters ad domains can't hide an app's ad requests.
-        docker run -d --name revanced-device --privileged --memory=3g -v "$data:/data" -p "$serial:5555" \
+        docker run -d --name revanced-device --privileged --memory=3g --cpus={{ device_cpus }} \
+            -v "$data:/data" -p "$serial:5555" \
             {{ device_image }} androidboot.use_memfd=true androidboot.redroid_gpu_mode=guest \
             androidboot.redroid_width=1080 androidboot.redroid_height=2400 androidboot.redroid_dpi=420 \
             androidboot.redroid_net_ndns=1 androidboot.redroid_net_dns1=1.1.1.1 >/dev/null

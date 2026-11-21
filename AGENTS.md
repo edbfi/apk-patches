@@ -61,8 +61,9 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
 
 ## Test device
 
-- `just device` starts Android 15 in Docker ([Redroid](https://github.com/remote-android/redroid-doc), no VM or
-  KVM) and connects adb on loopback; use `ANDROID_SERIAL=127.0.0.1:5600`. Agents share it: take turns.
+- `just device` starts Android 15 in Docker with a two-CPU limit using
+  [Redroid](https://github.com/remote-android/redroid-doc) (no VM or KVM) and connects adb on loopback.
+  Use `ANDROID_SERIAL=127.0.0.1:5600`. Agents share it and take turns.
   `just device-reset` deletes it and its data, the owner's login included: run it only when the owner asks.
 - Test a bundle on it with the device-test skill for its ecosystem: `revanced-device-test` or `morphe-device-test`.
   All three patch recipes call `just test-keystore` to create or reuse the main checkout’s `tmp/test-signing.keystore`.
