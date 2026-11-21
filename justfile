@@ -129,6 +129,7 @@ reseam-check: reseam-build
     {{ reseam_environment }}
     scratch=$(mktemp -d)
     trap 'rm -rf "$scratch"' EXIT
+    (cd reseam && RESEAM_BIN="$cli" ./gradlew test)
     just _reseam-sign-local "$cli" "$scratch"
     "$cli" bundle pubkey --key "$scratch/bundle.key" > "$scratch/bundle.pub"
     printf 'Local verification build.\n' > "$scratch/notes.md"
