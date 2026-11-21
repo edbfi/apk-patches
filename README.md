@@ -123,7 +123,7 @@ Use Reseam Manager 1.0.1 and put the [Reseam 1.0.1 CLI](https://github.com/Resea
 on your `PATH` as `reseam`. The CLI needs Java 17 or newer. On arm64 Linux, use the x64 JVM and wrapper
 described in [AGENTS.md](AGENTS.md#reseam-reseam).
 In Manager, open **Settings → Patch sources → Add patch source**. For a local build, use the loopback URL below.
-Once the latest edbfi release includes `patches.json`, the official source URL is
+For the `patches.json` asset in the [latest release](https://github.com/edbfi/apk-patches/releases/latest), use
 `https://github.com/edbfi/apk-patches/releases/latest/download/patches.json`.
 Verify the displayed signer before adding the source. Use **Pick an APK** to open the version listed on the app page.
 

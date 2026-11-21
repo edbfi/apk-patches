@@ -186,8 +186,8 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
   Put JVM regression tests in the extension’s `src/test/`. `just reseam-build` writes
   `reseam/build/reseam/unsigned/edbfi-patches.reseam`. `just reseam-patch <apk>` uses temporary EC signing for the
   CLI output, then re-signs it with the shared test certificate using `apksigner` from Build Tools in `ANDROID_HOME`.
-- To test spans, media links and comment queries on Redroid, install SDK Platform 36 and Build Tools 36.0.0 under
-  `ANDROID_HOME`. Set `ANDROID_SERIAL` and run
+- Run the on-demand Redroid check after changing rif’s Markdown or media link handling or Sync’s comment queries.
+  Install SDK Platform 36 and Build Tools 36.0.0 under `ANDROID_HOME`, set `ANDROID_SERIAL` and run
   `bash reseam/tests/android-framework/run.sh reseam/build/reseam/unsigned/edbfi-patches.reseam` after building.
 - Reseam's release job signs the bundle with its own key and attaches `edbfi-patches.reseam` and the Reseam source
   index `patches.json` to the GitHub release. Before the first Reseam release, review and commit the authorized
