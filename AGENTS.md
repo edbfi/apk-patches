@@ -22,8 +22,8 @@ file.
   `repos/` for other projects' clones; `tools/<purpose>/` for our scripts; `evidence/<feature>/`;
   `releases/<version>/` for release assets and notes; and `archive/` for finished work. `<app>` is as in its
   package dir; `<name>` is `<app>` for our apps and the project's repo name otherwise (`revanced-manager`).
-  `just revanced-patch` and `just morphe-patch` write the current checkout's `tmp/out/`, and the device-test skills
-  write `tmp/device-test/<run>/`.
+  `just revanced-patch`, `just morphe-patch` and `just reseam-patch` write to the current checkout’s `tmp/out/`.
+  Device-test skills write to `tmp/device-test/<run>/`.
 - Fetch an APK yourself with `agent-browser`, which runs cloakbrowser for Cloudflare's check, from APKMirror,
   APKPure or a similar site.
 
@@ -42,8 +42,8 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
   Keep shared hooks inert until a feature enables them.
 - Helpers are `internal`; only patches are public.
 - In ReVanced and Morphe, a patch lives in `patches/src/main/kotlin/app/edbfi/patches/<app>/<area>/<feature>/`.
-  `<app>` is a short lowercase app name (`syncforreddit`), and `<area>` groups features (`ads`, `api`, `layout`, `misc`).
-  Resources go in `patches/src/main/resources/edbfi/<app>/<feature>/`; shared code goes in `patches/…/patches/shared/`.
+  `<app>` is a short lowercase name such as `syncforreddit`. Group features by area (`ads`, `api`, `layout`, `misc`).
+  Put resources in `patches/src/main/resources/edbfi/<app>/<feature>/` and shared code in `patches/…/patches/shared/`.
 - In ReVanced and Morphe, Java that runs inside an app goes in `extensions/<app>/`, package
   `app.edbfi.extension.<app>`, with compile-only stubs of the app's classes in its `stub/` subproject. Add it with
   the first patch that needs it, name its file with the plugin's `extension { name }` as each tree says, and keep
@@ -54,8 +54,8 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
 
 - `just check` runs the prek hooks and the three bundle checks. `just build` builds all three bundles. Each tree's
   section names its own recipes. Run `./gradlew` from the corresponding tree.
-- ReVanced and Morphe need `githubPackagesUsername` and `githubPackagesPassword` (a classic PAT with only `read:packages`)
-  in `~/.gradle/gradle.properties`. Both use the same pair and run their Gradle daemon on JDK 25
+- ReVanced and Morphe read `githubPackagesUsername` and `githubPackagesPassword` from `~/.gradle/gradle.properties`.
+  Use a classic PAT with only `read:packages`. Both run their Gradle daemon on JDK 25
   (`gradle/gradle-daemon-jvm.properties` in each tree); point `org.gradle.java.installations.paths` there at a JDK 25
   that Gradle doesn't find by itself, such as Homebrew's.
 

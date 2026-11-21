@@ -23,7 +23,8 @@
 </p>
 
 Download the [ReVanced](https://revanced.app) and [Morphe](https://morphe.software) bundles from
-[Releases](https://github.com/edbfi/apk-patches/releases). Build the [Reseam preview](#reseam-preview) locally.
+[Releases](https://github.com/edbfi/apk-patches/releases). See [Reseam preview](#reseam-preview) for Manager
+source and local build instructions.
 
 ## Supported apps
 
@@ -121,9 +122,10 @@ java -jar morphe-desktop-<version>-all.jar patch -p https://github.com/edbfi/apk
 Use Reseam Manager 1.0.1 and put the [Reseam 1.0.1 CLI](https://github.com/Reseam/reseam/releases/tag/v1.0.1)
 on your `PATH` as `reseam`. The CLI needs Java 17 or newer. On arm64 Linux, use the x64 JVM and wrapper
 described in [AGENTS.md](AGENTS.md#reseam-reseam).
-In Manager, open **Settings → Patch sources → Add patch source**, enter the bundle publisher's
-`patches.json` URL, and verify the displayed signer before adding it. Use **Pick an APK** to
-open the version listed on the app page.
+In Manager, open **Settings → Patch sources → Add patch source**. For a local build, use the loopback URL below.
+Once the latest edbfi release includes `patches.json`, the official source URL is
+`https://github.com/edbfi/apk-patches/releases/latest/download/patches.json`.
+Verify the displayed signer before adding the source. Use **Pick an APK** to open the version listed on the app page.
 
 For a local preview, generate your own test signer and use its public key in Manager or the CLI.
 `just reseam-check` verifies this flow with a temporary key. To keep a test bundle for manual use, run:
