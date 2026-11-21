@@ -30,10 +30,7 @@ Reseam stores the override in the patched APK so rif can request albums and cove
 
 ## Known issues
 
-- **Golden platinum support is partial.** Previously enabled Synccit and notification settings keep
-  their stock opt-out controls and availability rules. Local themes, cards and viewers still use the
-  standard app’s own Ads & pro features setting and original purchase rules.
-
+- **Golden platinum support is partial.** Previously enabled Synccit and notification settings keep their stock opt-out controls and availability rules. Local themes, cards and viewers still use the standard app’s own Ads & pro features setting and original purchase rules.
 - **Some gallery images are skipped.** Reddit supplies neither the full image nor a usable preview for those items.
 - **Imgur uploads use the original proxy.** The album and cover patch leaves that upload path in place.
 - **Some YouTube videos cannot play in rif.** The video must be available and allow embedding.
