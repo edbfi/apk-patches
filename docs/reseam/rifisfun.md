@@ -18,6 +18,7 @@
 | Fix markdown links | Shows markdown links that Reddit leaves as raw text, such as links to u/name, as links. | On |
 | Fix media links | Opens reddit.com/media links as the Reddit-hosted image they wrap. | On |
 | Fix YouTube player | Fixes the built-in YouTube player, which showed a black screen and error code 0. | On |
+| Hide retired service controls | Hides disabled Synccit and new-post notification settings, new subscriptions, and the remote theme catalog. | On |
 | Keep typed text in view | Keeps the line being typed in view when writing a long reply. | On |
 
 ## Options
@@ -28,6 +29,10 @@
 Reseam stores the override in the patched APK so rif can request albums and covers.
 
 ## Known issues
+
+- **Golden platinum support is partial.** Previously enabled Synccit and notification settings keep
+  their stock opt-out controls and availability rules. Local themes, cards and viewers still use the
+  standard app’s own Ads & pro features setting and original purchase rules.
 
 - **Some gallery images are skipped.** Reddit supplies neither the full image nor a usable preview for those items.
 - **Imgur uploads use the original proxy.** The album and cover patch leaves that upload path in place.
