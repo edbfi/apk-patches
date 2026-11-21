@@ -41,9 +41,9 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
   ambiguous matches. ReVanced CLI can still write the APK after a failed patch, so validate before the first edit.
   Keep shared hooks inert until a feature enables them.
 - Helpers are `internal`; only patches are public.
-- In ReVanced and Morphe, a patch lives in `patches/src/main/kotlin/app/edbfi/patches/<app>/<area>/<feature>/`. `<app>` is a short
-  lowercase app name (`syncforreddit`), `<area>` groups features (`ads`, `api`, `layout`, `misc`). Resources go in
-  `patches/src/main/resources/edbfi/<app>/<feature>/`; code several apps share goes in `patches/…/patches/shared/`.
+- In ReVanced and Morphe, a patch lives in `patches/src/main/kotlin/app/edbfi/patches/<app>/<area>/<feature>/`.
+  `<app>` is a short lowercase app name (`syncforreddit`), and `<area>` groups features (`ads`, `api`, `layout`, `misc`).
+  Resources go in `patches/src/main/resources/edbfi/<app>/<feature>/`; shared code goes in `patches/…/patches/shared/`.
 - In ReVanced and Morphe, Java that runs inside an app goes in `extensions/<app>/`, package
   `app.edbfi.extension.<app>`, with compile-only stubs of the app's classes in its `stub/` subproject. Add it with
   the first patch that needs it, name its file with the plugin's `extension { name }` as each tree says, and keep
@@ -65,9 +65,8 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
   KVM) and connects adb on loopback; use `ANDROID_SERIAL=127.0.0.1:5600`. Agents share it: take turns.
   `just device-reset` deletes it and its data, the owner's login included: run it only when the owner asks.
 - Test a bundle on it with the device-test skill for its ecosystem: `revanced-device-test` or `morphe-device-test`.
-  `just revanced-patch` and `just morphe-patch` sign with the same key, the main checkout's
-  `tmp/test-signing.keystore`, so either ecosystem's build installs over the other's with `adb install -r` and keeps
-  the app's data.
+  All three patch recipes call `just test-keystore` to create or reuse the main checkout’s `tmp/test-signing.keystore`.
+  Verify the APK certificate against the installed copy before updating with `adb install -r`.
 - The host kernel needs binderfs and PSI; where PSI is off by default, boot with `psi=1`. On arm64 Linux, use a
   native `adb` on `PATH`, not the SDK's x86_64 one.
 - It renders in software, and playing a video crashes its SurfaceFlinger
@@ -134,8 +133,7 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
 - Its app pages are `docs/revanced/<app>.md`, and its README column is ReVanced.
 - `just revanced-check` lints, tests and builds the bundle; `just revanced-build` builds
   `revanced/patches/build/libs/patches-<version>.rvp`. `just revanced-patch <apk>` applies it with the pinned
-  revanced-cli into `tmp/out/`, signed with the main checkout's `tmp/test-signing.keystore`, which it creates on its
-  first run.
+  revanced-cli into `tmp/out/`, signed with the shared test key.
 
 ## Morphe (`morphe/`)
 
@@ -170,13 +168,22 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
 - Point `JAVA_HOME` at a native JDK 17. On arm64 Linux the CLI runs under QEMU and loads an x64 JVM from
   `tmp/inputs/temurin-17-x64` in the main checkout. Set `RESEAM_X64_JAVA_HOME` to change that path or
   `RESEAM_BIN` to use a compatible CLI executable instead of the platform default.
+  For direct CLI commands on arm64 from the repo root, run:
+
+  ```sh
+  export RESEAM_X64_BIN="$(just _reseam-cli)"
+  export RESEAM_X64_JAVA_HOME="${RESEAM_X64_BIN%/reseam-1.0.1/reseam}/temurin-17-x64"
+  reseam() { "$PWD/scripts/reseam-arm64.sh" "$@"; }
+  reseam --version
+  ```
 - App patches live in `apps/<app>/patch/`. Export public top-level `val`s using `patch { execute { … } }`, with English
   user-visible strings in `src/main/strings/values/strings.xml`. Keep published Kotlin package and property names
   stable because they form patch IDs. Use unnamed patches for dependencies and keep other helpers internal.
 - Pin each app's package and supported version in `compatibleWith`. Resolve required targets uniquely before
   editing. Use SDK targets, points and typed code blocks where they express the edit. Put in-app code in
   `apps/<app>/extensions/<name>/` and call it through generated bindings when needed.
-- `just reseam-check` builds and checks the compiled catalog using Python 3.11 or later. `just reseam-build` writes
+- `just reseam-check` runs the extensions’ JVM tests and checks the compiled catalog with Python 3.11 or later.
+  Put JVM regression tests in the extension’s `src/test/`. `just reseam-build` writes
   `reseam/build/reseam/unsigned/edbfi-patches.reseam`. `just reseam-patch <apk>` uses temporary EC signing for the
   CLI output, then re-signs it with the shared test certificate using `apksigner` from Build Tools in `ANDROID_HOME`.
 - Reseam's release job signs the bundle with its own key and attaches `edbfi-patches.reseam` and the Reseam source

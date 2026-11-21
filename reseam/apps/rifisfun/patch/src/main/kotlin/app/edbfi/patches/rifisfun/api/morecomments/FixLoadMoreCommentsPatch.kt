@@ -11,17 +11,20 @@ import app.reseam.patch.method
 import app.reseam.patch.patch
 import app.reseam.patch.points
 
+// The comment-sort enum is obfuscated in 5.6.22. Both signatures below take that same enum.
+private const val COMMENT_SORT = "n2.q"
+
 private val requestArguments = method("morechildren request arguments") {
     strings("link_id", "api_type", "children", "sort")
     returns("java.util.ArrayList")
-    params("com.andrewshu.android.reddit.things.objects.ThreadThing", Type.String, "[Ljava/lang/String;", "n2.q")
+    params("com.andrewshu.android.reddit.things.objects.ThreadThing", Type.String, "[Ljava/lang/String;", COMMENT_SORT)
 }
 
 private val requestConstructor = method("morechildren loader constructor") {
     name("<init>")
     calls(requestArguments)
     params("android.app.Activity", "com.andrewshu.android.reddit.things.objects.CommentThing",
-        "com.andrewshu.android.reddit.things.objects.ThreadThing", "n2.q")
+        "com.andrewshu.android.reddit.things.objects.ThreadThing", COMMENT_SORT)
 }
 
 private val sendRequest = requestConstructor.points("initialize morechildren request") {

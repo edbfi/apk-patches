@@ -29,6 +29,7 @@ private val adSites = methods("Consumers of Sync ad eligibility") {
 }
 
 private val purchaseAndDiagnosticOwners = setOf(
+    // The purchase-restore callback has an obfuscated inner class name in version 23033.
     "Lcom/laurencedawson/reddit_sync/ui/views/onboarding/OnboardingRestoreLinearLayout\$a;",
     "Lcom/laurencedawson/reddit_sync/ui/views/editor/EditorView;",
 )

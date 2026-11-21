@@ -22,8 +22,8 @@
   <a href="https://github.com/edbfi/apk-patches/actions/workflows/ci.yml?query=branch%3Amain"><img src="https://img.shields.io/github/actions/workflow/status/edbfi/apk-patches/ci.yml?branch=main&amp;event=push&amp;label=CI&amp;style=flat" alt="CI"></a>
 </p>
 
-Each release has two bundles: one for [ReVanced](https://revanced.app) and one for [Morphe](https://morphe.software).
-The [Reseam](https://reseam.app) edition is in development.
+Download the [ReVanced](https://revanced.app) and [Morphe](https://morphe.software) bundles from
+[Releases](https://github.com/edbfi/apk-patches/releases). Build the [Reseam preview](#reseam-preview) locally.
 
 ## Supported apps
 
@@ -118,8 +118,9 @@ java -jar morphe-desktop-<version>-all.jar patch -p https://github.com/edbfi/apk
 
 ### Reseam preview
 
-The Sync startup patch was tested with Reseam Manager and CLI 1.0.1 using a clean APK.
-The app pages list the patches available in this preview and any additional requirements.
+Use Reseam Manager 1.0.1 and put the [Reseam 1.0.1 CLI](https://github.com/Reseam/reseam/releases/tag/v1.0.1)
+on your `PATH` as `reseam`. The CLI needs Java 17 or newer. On arm64 Linux, use the x64 JVM and wrapper
+described in [AGENTS.md](AGENTS.md#reseam-reseam).
 In Manager, open **Settings → Patch sources → Add patch source**, enter the bundle publisher's
 `patches.json` URL, and verify the displayed signer before adding it. Use **Pick an APK** to
 open the version listed on the app page.
@@ -149,8 +150,7 @@ python3 -m http.server 18765 --bind 127.0.0.1 --directory tmp/reseam-preview/sit
 
 Add `http://127.0.0.1:18765/patches.json` in Manager and compare the displayed signer with
 `tmp/reseam-preview/bundle.pub`. After testing, stop the server and run `adb reverse --remove tcp:18765`.
-The first official Reseam release awaits the publisher's authorized public key at `keys/reseam-signing.pub`
-in its release tag. For an official bundle, use that reviewed public key.
+For an official bundle, compare the signer with `keys/reseam-signing.pub` in the matching release tag.
 
 ```sh
 reseam patch app.apk --bundle tmp/reseam-preview/edbfi-patches.reseam \
@@ -163,7 +163,7 @@ before installing the update.
 
 ## Verify a download
 
-Both bundles are signed with the [public key](keys/release-signing.asc), fingerprint
+The ReVanced and Morphe bundles are signed with the [public key](keys/release-signing.asc), fingerprint
 `7B40 A51F C15C 376F 09D1  6979 893C 92F2 3E64 7FC8`.
 
 - **ReVanced CLI** checks the `.rvp` with the command above.

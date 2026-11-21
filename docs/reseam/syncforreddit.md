@@ -32,10 +32,5 @@ patched APK so the app can request albums and covers. This option has no preset 
 
 ## Known issues
 
-- **Imgur requires a valid client ID.** Album, cover and upload handling was checked against response fixtures and the stock request paths.
-- **Other discussions uses Reddit search.** It can miss posts or include results with different links.
-- **Tenor thumbnails come from public GIF pages.** Preview loading contacts Tenor when it needs a
-  thumbnail and depends on the page publishing a preview image.
-
-The Sync for Lemmy patch was exercised with CLI and Manager 1.0.1 on Android 15. An offline cold launch
-showed the signup sheet on the original APK. Both patched builds opened the feed screen without the sheet.
+- **Other discussions can miss posts or show posts with different links.** It uses Reddit search.
+- **Some Tenor thumbnails stay blank.** Sync contacts the public GIF page, which must publish a preview image.

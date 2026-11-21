@@ -29,10 +29,6 @@ Reseam stores the override in the patched APK so rif can request albums and cove
 
 ## Known issues
 
-- **Imgur covers still need device verification.** The app’s bundled registration retrieved public album
-  data. Cover and image rendering still need verification.
-- **Unavailable gallery images may be skipped.** rif can use a preview supplied by Reddit when the full
-  image is unavailable.
+- **Some gallery images are skipped.** Reddit supplies neither the full image nor a usable preview for those items.
 - **Imgur uploads use the original proxy.** The album and cover patch leaves that upload path in place.
-- **YouTube controls depend on video availability and embedding permissions.** Playback from the patched
-  viewer still needs device verification.
+- **Some YouTube videos cannot play in rif.** The video must be available and allow embedding.
