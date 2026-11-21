@@ -26,6 +26,7 @@ private const val GROUP = "androidx.preference.PreferenceGroup"
 private const val SYNCCIT_ENABLED = "SYNCCIT_ENABLED"
 private const val SYNCCIT_SETTINGS = "SYNCCIT_PREFS"
 private const val NOTIFY_ENABLED = "ENABLE_NEW_POST_NOTIFICATIONS"
+private const val MANAGE_NOTIFICATIONS = "MANAGE_NEW_POST_NOTIFICATIONS"
 
 private object RetiredSearch : ExtClass("app.edbfi.extension.rifisfun.settings.RetiredSearch") {
     val filter by static("android.content.Context", "java.util.List")
@@ -221,11 +222,11 @@ val goldenPlatinum = patch(RifPatchStrings.hideRetiredServiceControls) {
         }
         stockPreferenceScreen("notification_preferences").use { notifications ->
             val toggle = notifications.requirePreference(NOTIFY_ENABLED, checkbox)
-            notifications.requirePreference("MANAGE_NEW_POST_NOTIFICATIONS", "Preference")
+            notifications.requirePreference(MANAGE_NOTIFICATIONS, "Preference")
             val category = toggle.parent
             check(category?.tag == "PreferenceCategory" &&
-                category.children.map { it["android:key"] }.sortedBy { it } ==
-                listOf(NOTIFY_ENABLED, "MANAGE_NEW_POST_NOTIFICATIONS")) {
+                category.children.map { it["android:key"] }.toSet() ==
+                setOf(NOTIFY_ENABLED, MANAGE_NOTIFICATIONS)) {
                 "Expected only the new-post switch and subscription manager in their PreferenceCategory"
             }
         }
