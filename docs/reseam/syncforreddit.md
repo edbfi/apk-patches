@@ -21,6 +21,7 @@
 | Fix video downloads | Fixes downloaded Reddit videos having only audio. | On |
 | Fix View more comments | Fixes “View more” not loading further comments. | On |
 | Hide Gfycat link previews | Hides broken Gfycat link previews. | On |
+| Hide retired cloud backup | Removes cloud backup controls from the Backup screen and stops its cloud backup check. Keeps local backup and restore available. | On |
 | Use /user/ endpoint | Requests user profiles from /user/ instead of /u/. | Off |
 
 ## Options
@@ -34,3 +35,4 @@ patched APK so the app can request albums and covers. This option has no preset 
 
 - **Other discussions can miss posts or show posts with different links.** It uses Reddit search.
 - **Some Tenor thumbnails stay blank.** Sync contacts the public GIF page, which must publish a preview image.
+- **Sync Ultra still advertises cloud backup.** Its backup shortcut opens the Backup screen, where this patch hides the cloud controls.
