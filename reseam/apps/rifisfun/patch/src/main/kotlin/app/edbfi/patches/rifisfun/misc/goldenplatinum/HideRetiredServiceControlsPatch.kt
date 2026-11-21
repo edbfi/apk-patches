@@ -5,6 +5,7 @@ package app.edbfi.patches.rifisfun.misc.goldenplatinum
 import app.edbfi.patches.rifisfun.RifPatchStrings
 import app.edbfi.patches.rifisfun.rifIsFun
 import app.reseam.patch.ExtClass
+import app.reseam.patch.PatchRuntime
 import app.reseam.patch.Type
 import app.reseam.patch.XmlDocument
 import app.reseam.patch.addMethod
@@ -15,6 +16,8 @@ import app.reseam.patch.klass
 import app.reseam.patch.method
 import app.reseam.patch.patch
 import app.reseam.patch.points
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 private const val SETTINGS = "com.andrewshu.android.reddit.settings."
 private const val PREFERENCE = "androidx.preference.Preference"
@@ -125,6 +128,30 @@ private val loadCatalog = themeActions.points("start remote theme listing loader
     invokeVirtual { owner("androidx.loader.app.a"); params(Type.Int, "android.os.Bundle", "androidx.loader.app.a\$a") }
 }.single()
 
+// AndroidX prefers the app's key attribute to android:key, regardless of its XML prefix.
+// Both shipped screens use framework keys exclusively. Check the compiled attribute ID table.
+private fun PatchRuntime.stockPreferenceScreen(name: String): XmlDocument {
+    val path = resources.paths("xml", name).distinct().singleOrNull()
+        ?: error("Expected one compiled XML layout for $name")
+    val appKey = checkNotNull(resources.id("attr", "key")).toInt()
+    val xml = ByteBuffer.wrap(checkNotNull(files.read(path))).order(ByteOrder.LITTLE_ENDIAN)
+    var offset = xml.getShort(2).toInt() and 0xffff
+    while (offset <= xml.limit() - 8) {
+        val header = xml.getShort(offset + 2).toInt() and 0xffff
+        val size = xml.getInt(offset + 4)
+        check(header >= 8 && size in header..(xml.limit() - offset)) { "Invalid binary XML chunk in $name" }
+        if (xml.getShort(offset).toInt() == 0x0180) { // RES_XML_RESOURCE_MAP_TYPE
+            check((size - header) % 4 == 0) { "Invalid XML resource map in $name" }
+            check((offset + header until offset + size step 4).none { xml.getInt(it) == appKey }) {
+                "Unexpected app:key in $name; stock preferences use android:key"
+            }
+            return files.xml(path)
+        }
+        offset += size
+    }
+    error("Missing XML resource map in $name")
+}
+
 // Only these controls may be hidden. Validate their type and grouping before editing the APK.
 private fun XmlDocument.requirePreference(key: String, tag: String) =
     findByAttribute("android:key", key).singleOrNull()?.also {
@@ -183,15 +210,18 @@ val goldenPlatinum = patch(RifPatchStrings.hideRetiredServiceControls) {
         check(searchActivity.classDef.method("onResume", "()V") == null)
 
         val checkbox = SETTINGS + "CheckIfEnabledCheckBoxPreference"
-        resources.xml("xml", "history_preferences").use { history ->
+        stockPreferenceScreen("history_preferences").use { history ->
             val toggle = history.requirePreference(SYNCCIT_ENABLED, checkbox)
             history.requirePreference(SYNCCIT_SETTINGS, "Preference")
-            check(toggle.parent?.children?.any { it["android:key"] == SYNCCIT_SETTINGS } == true) {
-                "Expected SYNCCIT_PREFS beside SYNCCIT_ENABLED"
+            val category = toggle.parent
+            check(category?.tag == "PreferenceCategory" &&
+                category.children.any { it["android:key"] == SYNCCIT_SETTINGS }) {
+                "Expected SYNCCIT_PREFS and SYNCCIT_ENABLED in the same PreferenceCategory"
             }
         }
-        resources.xml("xml", "notification_preferences").use { notifications ->
+        stockPreferenceScreen("notification_preferences").use { notifications ->
             val toggle = notifications.requirePreference(NOTIFY_ENABLED, checkbox)
+            notifications.requirePreference("MANAGE_NEW_POST_NOTIFICATIONS", "Preference")
             val category = toggle.parent
             check(category?.tag == "PreferenceCategory" &&
                 category.children.map { it["android:key"] }.sortedBy { it } ==
