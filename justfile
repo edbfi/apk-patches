@@ -98,6 +98,7 @@ test-keystore:
     keystore=$(cd "$(git rev-parse --path-format=absolute --git-common-dir)/.." && pwd)/tmp/test-signing.keystore
     if [[ ! -f "$keystore" ]]; then
         cli=$(just _revanced-cli)
+        umask 077
         mkdir -p "$(dirname "$keystore")"
         scratch=$(mktemp -d "$(dirname "$keystore")/test-signing.XXXXXXXX")
         trap 'rm -rf "$scratch"' EXIT

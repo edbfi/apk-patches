@@ -12,7 +12,7 @@ class CreateTestKeystore {
     public static void main(String[] args) throws Exception {
         ApkSigner signer = ApkSigner.INSTANCE;
         var expires = Date.from(Instant.now().plus(10000, ChronoUnit.DAYS));
-        var key = signer.newPrivateKeyCertificatePair("CN=ReVanced", expires);
+        var key = signer.newPrivateKeyCertificatePair("ReVanced", expires);
         var keystore = signer.newKeyStore(Set.of(new ApkSigner.KeyStoreEntry("ReVanced Key", "", key)));
         try (var output = Files.newOutputStream(Path.of(args[0]))) {
             keystore.store(output, new char[0]);

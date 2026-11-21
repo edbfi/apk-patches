@@ -88,6 +88,16 @@ jobs:
           printf '%s  %s\n' 409044617b6f06517c1035e55ca38c8c856ff8b650e41bc2aa1ef82d5903a23e "$archive" | sha256sum -c
           tar -xzf "$archive" -C "$RUNNER_TEMP" just
           echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+      - name: Create and reuse the APK test keystore
+        run: |
+          key=$(just test-keystore)
+          sha256sum "$key" > "$RUNNER_TEMP/test-key.sha256"
+          test "$(just test-keystore)" = "$key"
+          sha256sum -c "$RUNNER_TEMP/test-key.sha256"
+          keytool -importkeystore -noprompt -srcstoretype BKS -srckeystore "$key" \
+            -srcstorepass '' -srcalias 'ReVanced Key' -srckeypass '' \
+            -providerclass org.bouncycastle.jce.provider.BouncyCastleProvider -providerpath "$(just _revanced-cli)" \
+            -deststoretype PKCS12 -destkeystore "$RUNNER_TEMP/test-key.p12" -deststorepass fixture-only
       - run: just reseam-check
   ci-ok:
     if: always()
