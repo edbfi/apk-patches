@@ -32,6 +32,18 @@ val fixShareLinks = patch(SyncPatchStrings.fixShareLinks) {
     execute {
         routeLink.method
         openLink.method
+        manifest.edit {
+            val activity = findByTag("activity").single {
+                it["android:name"] == "com.laurencedawson.reddit_sync.ui.activities.IntentActivity"
+            }
+            val filter = activity.children.single { element ->
+                element.children.any { it["android:host"] == "np.reddit.com" }
+            }
+            filter.appendChild(createElement("data").apply {
+                this["android:scheme"] = "https"
+                this["android:host"] = "new.reddit.com"
+            })
+        }
         ShareLinks.openResolved.implement {
             call(openLink, param(0), param(1))
             returnVoid()

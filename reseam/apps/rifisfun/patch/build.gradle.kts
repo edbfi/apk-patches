@@ -7,4 +7,5 @@ reseamStrings {
 dependencies {
     add("reseamExtensions", project(":shared:imgur"))
     add("reseamExtensions", project(":shared:reddit-gallery"))
+    add("reseamExtensions", project(":shared:reddit-share"))
 }
