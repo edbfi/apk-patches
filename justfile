@@ -243,7 +243,9 @@ device:
     [[ -e /proc/pressure/memory ]] || { echo "PSI is off: boot the kernel with psi=1." >&2; exit 1; }
     # An existing device keeps the image and boot arguments it was created with; device-reset applies new ones.
     if docker container inspect revanced-device >/dev/null 2>&1; then
+        docker update --cpus={{ device_cpus }} revanced-device >/dev/null
         docker start revanced-device >/dev/null
+        # Docker can restore an older explicit CpuQuota=-1 over NanoCPUs at startup.
         docker update --cpus={{ device_cpus }} revanced-device >/dev/null
     else
         data=${XDG_DATA_HOME:-$HOME/.local/share}/revanced-device
