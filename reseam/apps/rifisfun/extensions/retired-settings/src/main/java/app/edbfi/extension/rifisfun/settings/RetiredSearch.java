@@ -55,6 +55,7 @@ public final class RetiredSearch {
         private final boolean notificationsEnabled;
 
         ServiceVisibility(Context context) {
+            // In rif 5.6.22, RifBaseSettingsFragment.F4() selects this file for its PreferenceManager.
             SharedPreferences preferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE);
             synccitEnabled = preferences.getBoolean("SYNCCIT_ENABLED", false);
             notificationsEnabled = preferences.getBoolean("ENABLE_NEW_POST_NOTIFICATIONS", false);

@@ -6,6 +6,7 @@ import app.edbfi.patches.rifisfun.RifPatchStrings
 import app.edbfi.patches.rifisfun.rifIsFun
 import app.reseam.patch.ExtClass
 import app.reseam.patch.Type
+import app.reseam.patch.XmlDocument
 import app.reseam.patch.addMethod
 import app.reseam.patch.after
 import app.reseam.patch.before
@@ -124,6 +125,12 @@ private val loadCatalog = themeActions.points("start remote theme listing loader
     invokeVirtual { owner("androidx.loader.app.a"); params(Type.Int, "android.os.Bundle", "androidx.loader.app.a\$a") }
 }.single()
 
+// Only these controls may be hidden. Validate their type and grouping before editing the APK.
+private fun XmlDocument.requirePreference(key: String, tag: String) =
+    findByAttribute("android:key", key).singleOrNull()?.also {
+        check(it.tag == tag) { "Expected $tag for preference $key, found ${it.tag}" }
+    } ?: error("Expected exactly one preference with android:key=$key")
+
 val goldenPlatinum = patch(RifPatchStrings.hideRetiredServiceControls) {
     description(RifPatchStrings.hideRetiredServiceControlsDescription)
     compatibleWith(rifIsFun)
@@ -174,6 +181,24 @@ val goldenPlatinum = patch(RifPatchStrings.hideRetiredServiceControls) {
         searchAdapter.method
         check(searchActivity.classDef.superclass == "Lcom/andrewshu/android/reddit/theme/BaseThemedActivity;")
         check(searchActivity.classDef.method("onResume", "()V") == null)
+
+        val checkbox = SETTINGS + "CheckIfEnabledCheckBoxPreference"
+        resources.xml("xml", "history_preferences").use { history ->
+            val toggle = history.requirePreference(SYNCCIT_ENABLED, checkbox)
+            history.requirePreference(SYNCCIT_SETTINGS, "Preference")
+            check(toggle.parent?.children?.any { it["android:key"] == SYNCCIT_SETTINGS } == true) {
+                "Expected SYNCCIT_PREFS beside SYNCCIT_ENABLED"
+            }
+        }
+        resources.xml("xml", "notification_preferences").use { notifications ->
+            val toggle = notifications.requirePreference(NOTIFY_ENABLED, checkbox)
+            val category = toggle.parent
+            check(category?.tag == "PreferenceCategory" &&
+                category.children.map { it["android:key"] }.sortedBy { it } ==
+                listOf(NOTIFY_ENABLED, "MANAGE_NEW_POST_NOTIFICATIONS")) {
+                "Expected only the new-post switch and subscription manager in their PreferenceCategory"
+            }
+        }
 
         val remoteThemeIds = listOf("downloadable_themes_heading", "theme_count", "grid_for_sale")
             .map { checkNotNull(resources.id("id", it)) }
