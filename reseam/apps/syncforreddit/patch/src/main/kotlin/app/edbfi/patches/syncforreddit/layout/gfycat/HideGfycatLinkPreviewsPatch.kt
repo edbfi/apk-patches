@@ -30,6 +30,7 @@ import app.reseam.patch.types.MethodRef
 
 // Sync 23033's RedditLinkPreview constructor (wa.e) assigns 3 to its inherited media type.
 private const val PLAIN_LINK = 3
+// Sync 23033's post media parser (c8.b.a) stores type 4 when it builds the thumbs.gfycat.com poster.
 private const val VIDEO_LINK = 4
 // The stock PostPreviewHelper changes that type to 9 when it reads a Reddit preview.
 private const val LINK_WITH_PREVIEW = 9
@@ -196,7 +197,11 @@ val hideGfycatLinkPreviews = patch(SyncPatchStrings.hideGfycatLinkPreviews) {
         val selection = redditPreview.method
         check(selection.parameterTypes.getOrNull(1) == Type.String) { "Missing Reddit preview destination" }
         val previewClass = checkNotNull(bytecode.findClass(selection.returnType)) { "Missing Reddit preview model" }
-        val selectedImage = previewClass.instanceFields.single { it.ref.fieldType == Type.String }.ref
+        val imageFields = previewClass.instanceFields.filter { it.ref.fieldType == Type.String }
+        check(imageFields.size == 1) {
+            "Gfycat previews: expected one String image URL field on ${selection.returnType}, found ${imageFields.size}"
+        }
+        val selectedImage = imageFields.single().ref
         val parsedMedia = postMedia.method
         val linkTypeWrite = postMedia.points("Plain link preview type write") {
             calls(redditPreview)
