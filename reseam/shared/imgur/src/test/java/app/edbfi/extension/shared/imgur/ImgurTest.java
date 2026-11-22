@@ -28,6 +28,32 @@ public final class ImgurTest {
     }
 
     @Test
+    public void titledCommentCoversUseTrailingIdsAndPreserveGalleryRouting() {
+        assertEquals("https://imgur.com/a/AbCd123", Imgur.titledCommentCoverModel(
+                "http://imgur.com/a/captioned-album-AbCd123", "https://imgur.com/a/captioned"));
+        assertEquals("https://imgur.com/gallery/XyZ4567", Imgur.titledCommentCoverModel(
+                "http://www.imgur.com/gallery/captioned-gallery-XyZ4567/?sort=top#first",
+                "https://imgur.com/a/captioned"));
+    }
+
+    @Test
+    public void olderCommentCoversKeepTheStockExtractedId() {
+        String stockModel = "https://imgur.com/a/AbCd123";
+        for (String url : new String[] {
+                "http://imgur.com/a/AbCd123",
+                "http://imgur.com/a/AbCd123/layout",
+                "http://imgur.com/a/AbCd123/HORIZONTAL/?sort=top#first",
+                "http://iob.imgur.com/AbCd123",
+                "http://iob.imgur.io/AbCd123",
+                "http://imgur.com/gallery/AbCd123",
+                "http://imgur.com/a/bad-title-null",
+                "http://imgur.com.invalid/a/similar-host-AbCd123",
+        }) {
+            assertEquals(url, stockModel, Imgur.titledCommentCoverModel(url, stockModel));
+        }
+    }
+
+    @Test
     public void scopesAuthorizationToTheExactHttpsApiAndPreservesOtherHeaders() {
         var original = Map.of("User-Agent", "fixture-app", "content-type", "application/x-www-form-urlencoded",
                 "x-rapidapi-key", "obsolete", "X-RapidAPI-Host", "obsolete", "authorization", "obsolete");

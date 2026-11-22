@@ -14,6 +14,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.net.ssl.HttpsURLConnection;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,6 +24,7 @@ import org.json.JSONObject;
 public final class Imgur {
     private static final String API = "https://api.imgur.com/3/";
     private static final int MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
+    private static final Pattern TITLED_ALBUM_PATH = Pattern.compile("/(a|gallery)/[^/]+-([A-Za-z0-9]{1,32})/*");
 
     private Imgur() {}
 
@@ -86,6 +89,19 @@ public final class Imgur {
         }
         String id = id(link);
         return id.isEmpty() ? link : "https://imgur.com" + (gallery ? "/gallery/" : "/a/") + id;
+    }
+
+    @Export
+    public static String titledCommentCoverModel(String link, String stockModel) {
+        URI parsed = page(link);
+        if (parsed == null) {
+            return stockModel;
+        }
+        Matcher titled = TITLED_ALBUM_PATH.matcher(parsed.getRawPath());
+        if (!titled.matches() || !isId(titled.group(2))) {
+            return stockModel;
+        }
+        return "https://imgur.com/" + titled.group(1) + "/" + titled.group(2);
     }
 
     @Export
