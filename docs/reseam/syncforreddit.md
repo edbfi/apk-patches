@@ -42,7 +42,6 @@ patched APK so the app can request albums and covers. This option has no preset 
 - **Other discussions can miss posts or show posts with different links.** It uses Reddit search.
 - **Some Tenor thumbnails stay blank.** Sync contacts the public GIF page, which must publish a preview image.
 - **Website previews can show a missing image.** Sync checks up to two distinct public `og:image` URLs in page order within one request budget. It skips previews when a proxy is configured and discards a loaded image if previews are off or a proxy is configured when loading finishes.
-- **Sync Ultra still advertises cloud backup.** The Ultra settings page has its own cloud backup text and shortcut. The patch removes the controls on the Backup screen.
 - **Tags and paints do not sync across devices.** Sync used its cloud service to sync and clear entries. This patch
   saves individual changes locally. Where shown, **Force refresh** does nothing, and **Clear all** shows “TODO”.
   Remove entries individually. The tag manager hides **Import local**, which uploaded tags. Paint controls require

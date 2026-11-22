@@ -33,12 +33,6 @@ private val commentOptions = methods("Build comment options") {
     returns(Type.Void)
 }.single()
 
-private val ultraSettings = methods("Set up the Ultra settings page") {
-    strings(RESTORE_PREFERENCE, "ultra_translate", "ultra_manage_preference")
-    params()
-    returns(Type.Void)
-}.single()
-
 private val logUpdatedConfig = methods("Log the updated comment restore flag") {
     strings(RESTORE_FLAG, "Restore value updated: ")
     flags(AccessFlags.STATIC)

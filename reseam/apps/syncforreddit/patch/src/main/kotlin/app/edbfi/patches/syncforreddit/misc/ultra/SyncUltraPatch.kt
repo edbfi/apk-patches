@@ -15,11 +15,13 @@ import app.reseam.patch.patch
 import app.reseam.patch.points
 
 private const val BACKUP_XML = "cat_backup"
-private const val KEY = "android:key"
-private const val PREFERENCE = "Landroidx/preference/Preference;"
+internal const val KEY = "android:key"
+internal const val PREFERENCE = "Landroidx/preference/Preference;"
 // Sync's build obfuscates the AndroidX preference click listener interface.
-private const val CLICK_LISTENER = "Landroidx/preference/Preference\$d;"
-private const val SYNC_PREFERENCE = "com.laurencedawson.reddit_sync.ui.preferences.defaults.SyncPreference"
+internal const val CLICK_LISTENER = "Landroidx/preference/Preference\$d;"
+internal const val SYNC_PREFERENCE = "com.laurencedawson.reddit_sync.ui.preferences.defaults.SyncPreference"
+internal const val CATEGORY_HEADER = "com.laurencedawson.reddit_sync.ui.preferences.defaults.CategoryHeaderPreference"
+internal const val INFO_HEADER = "com.laurencedawson.reddit_sync.ui.preferences.CategoryInfoHeaderPreference"
 private const val DIVIDER = "com.laurencedawson.reddit_sync.ui.preferences.custom.DividerPreference"
 
 private val localActions = listOf("backup_dir", "backup_all", "backup_restore")
@@ -44,12 +46,44 @@ private val refreshCloudBackup = methods("Refresh cloud backup availability") {
     }
 }.single()
 
-private fun XmlDocument.requirePreference(key: String, tag: String) =
-    checkNotNull(findByAttribute(KEY, key).singleOrNull()) {
-        "Expected one preference with key $key in $BACKUP_XML"
+internal fun XmlDocument.requirePreference(layout: String, key: String, tag: String) =
+    requireElement(layout, KEY, key, tag)
+
+internal fun XmlDocument.requireElement(layout: String, attribute: String, value: String, tag: String) =
+    checkNotNull(findByAttribute(attribute, value).singleOrNull()) {
+        "Expected one element with $attribute=$value in $layout"
     }.also {
-        check(it.tag == tag) { "Expected $key to be a $tag" }
+        check(it.tag == tag) { "Expected $attribute=$value to be a $tag in $layout" }
     }
+
+private fun XmlDocument.resolveBackupLayoutEdits(): () -> Unit {
+    check(root.tag == "PreferenceScreen") { "Unexpected $BACKUP_XML root" }
+    val category = requirePreference(BACKUP_XML, "ultra_backup", "PreferenceCategory")
+    val divider = requirePreference(BACKUP_XML, "ultra_backup_divider", DIVIDER)
+    check(listOf(category, divider).all { it.parent?.tag == "PreferenceScreen" } && divider.children.isEmpty()) {
+        "Unexpected cloud backup layout"
+    }
+    val expectedChildren = listOf(
+        CATEGORY_HEADER to null,
+        INFO_HEADER to null,
+    ) + cloudActions.map { SYNC_PREFERENCE to it }
+    check(category.children.map { it.tag to it[KEY] } == expectedChildren) {
+        "Unexpected preferences in the cloud backup category"
+    }
+    cloudActions.forEach { requirePreference(BACKUP_XML, it, SYNC_PREFERENCE) }
+    localActions.forEach { key ->
+        val action = requirePreference(BACKUP_XML, key, SYNC_PREFERENCE)
+        val parent = action.parent
+        check(
+            parent?.tag == "PreferenceCategory" && parent[KEY] == null &&
+                parent.parent?.tag == "PreferenceScreen"
+        ) { "Expected $key in a local backup category" }
+    }
+    return {
+        category.remove()
+        divider.remove()
+    }
+}
 
 val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
     description(SyncPatchStrings.fixWebsitePreviewsAndBackupDescription)
@@ -108,34 +142,24 @@ val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
         val applyWebsitePreviews = resolveWebsitePreviewEdits()
         val hideCommentRestore = resolveCommentRestoreEdit()
         val keepUserAnnotationsLocal = resolveUserAnnotationEdits()
+        val removeCloudBackupShortcut = resolveCloudBackupShortcutEdit()
 
-        resources.editXml("xml", BACKUP_XML) {
-            check(root.tag == "PreferenceScreen") { "Unexpected $BACKUP_XML root" }
-            val category = requirePreference("ultra_backup", "PreferenceCategory")
-            val divider = requirePreference("ultra_backup_divider", DIVIDER)
-            check(listOf(category, divider).all { it.parent?.tag == "PreferenceScreen" } && divider.children.isEmpty()) {
-                "Unexpected cloud backup layout"
-            }
-            val expectedChildren = listOf(
-                "com.laurencedawson.reddit_sync.ui.preferences.defaults.CategoryHeaderPreference" to null,
-                "com.laurencedawson.reddit_sync.ui.preferences.CategoryInfoHeaderPreference" to null,
-            ) + cloudActions.map { SYNC_PREFERENCE to it }
-            check(category.children.map { it.tag to it[KEY] } == expectedChildren) {
-                "Unexpected preferences in the cloud backup category"
-            }
-            cloudActions.forEach { requirePreference(it, SYNC_PREFERENCE) }
-            localActions.forEach { key ->
-                val action = requirePreference(key, SYNC_PREFERENCE)
-                val parent = action.parent
-                check(
-                    parent?.tag == "PreferenceCategory" && parent[KEY] == null &&
-                        parent.parent?.tag == "PreferenceScreen"
-                ) { "Expected $key in a local backup category" }
-            }
-
-            category.remove()
-            divider.remove()
+        listOf(ULTRA_XML, SETTINGS_XML).forEach { layout ->
+            check(resources.paths("xml", layout).size == 1) { "Expected one $layout layout" }
         }
+        resources.xml("xml", BACKUP_XML).use { backup ->
+            resources.xml("xml", ULTRA_XML).use { ultra ->
+                resources.xml("xml", SETTINGS_XML).use { settings ->
+                    val removeCloudBackup = backup.resolveBackupLayoutEdits()
+                    val updateUltraSettings = ultra.resolveUltraSettingsLayoutEdits()
+                    val updateUltraEntry = settings.resolveUltraEntryEdit()
+                    removeCloudBackup()
+                    updateUltraSettings()
+                    updateUltraEntry()
+                }
+            }
+        }
+        removeCloudBackupShortcut()
         cloudSetup.before { returnVoid() }
         // The backup status event also calls this method after the screen has been created.
         refreshCloudBackup.alwaysReturn()
