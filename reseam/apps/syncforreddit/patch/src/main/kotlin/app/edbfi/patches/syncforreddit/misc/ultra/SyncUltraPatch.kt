@@ -107,6 +107,7 @@ val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
 
         val applyWebsitePreviews = resolveWebsitePreviewEdits()
         val hideCommentRestore = resolveCommentRestoreEdit()
+        val keepUserAnnotationsLocal = resolveUserAnnotationEdits()
 
         resources.editXml("xml", BACKUP_XML) {
             check(root.tag == "PreferenceScreen") { "Unexpected $BACKUP_XML root" }
@@ -140,5 +141,6 @@ val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
         refreshCloudBackup.alwaysReturn()
         applyWebsitePreviews()
         hideCommentRestore()
+        keepUserAnnotationsLocal()
     }
 }
