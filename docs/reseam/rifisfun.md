@@ -28,14 +28,17 @@
 `Imgur client ID` can override rif’s bundled Imgur registration with one you are authorized to use.
 Reseam stores the override in the patched APK so rif can request albums and covers.
 
+## Local themes
+
+On standard rif, enable **Ads & pro features** in **Settings → General settings**. In **Theme**, turn on
+**Enable developer mode** and tap **Select theme directory**. Open the folder containing the theme’s
+`manifest.json`, then tap **Use this folder → Allow**. After editing the files, choose **Reload files**,
+then close and reopen rif.
+
 ## Known issues
 
-- **Golden platinum support is partial.** Previously enabled Synccit and notification settings keep their stock
-  opt-out controls and availability rules. Cards, viewers and theme purchases follow rif’s original rules.
-  On standard rif, leave **Ads & pro features** on in **Settings → General settings** to use local themes.
-  In **Theme**, turn on **Enable developer mode** and tap **Select theme directory**. Open the folder containing
-  the theme’s `manifest.json`, then tap **Use this folder → Allow**.
-  After editing the files, choose **Reload files**, then close and reopen rif.
+- **Turning off Ads & pro features can also disable cards, viewers and local themes.** Standard rif still uses its original access and purchase rules.
+- **Previously enabled Synccit and notification settings can still appear.** The patch preserves rif’s opt-out controls and their availability rules.
 - **Some gallery images are skipped.** Reddit supplies neither the full image nor a usable preview for those items.
 - **Imgur uploads use the original proxy.** The album and cover patch leaves that upload path in place.
 - **Some YouTube videos cannot play in rif.** The video must be available and allow embedding.
