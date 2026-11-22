@@ -7,6 +7,11 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
@@ -21,6 +26,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -30,7 +36,11 @@ public final class PreviewClientTest {
     private static final byte[] IMAGE = {1, 2, 3};
 
     private static PreviewClient client(Interceptor interceptor) {
-        return new PreviewClient(new OkHttpClient.Builder().addInterceptor(interceptor).build());
+        return client(31, interceptor);
+    }
+
+    private static PreviewClient client(int sdkInt, Interceptor interceptor) {
+        return new PreviewClient(new OkHttpClient.Builder().addInterceptor(interceptor).build(), sdkInt);
     }
 
     private static Response.Builder response(Request request, int status) {
@@ -105,6 +115,34 @@ public final class PreviewClientTest {
 
         assertArrayEquals(IMAGE, actual);
         assertEquals(List.of(1, IMAGE.length), decodedLengths);
+    }
+
+    @Test
+    public void negotiatesAvifStartingAtAndroid12AndFallsBackOnEarlierVersions() throws IOException {
+        String commonImages = "image/webp,image/png,image/jpeg,image/gif";
+        byte[] avif = {4};
+        for (int sdkInt : List.of(23, 30, 31, 35)) {
+            boolean supportsAvif = sdkInt >= 31;
+            List<String> paths = new ArrayList<>();
+            PreviewClient client = client(sdkInt, chain -> {
+                Request request = chain.request();
+                String path = request.url().encodedPath();
+                paths.add(path);
+                if (path.equals("/start")) {
+                    assertEquals("text/html,application/xhtml+xml", request.header("Accept"));
+                    return html(request, "<meta property=og:image content=/avif>"
+                            + "<meta property=og:image content=/png>");
+                }
+                assertEquals(supportsAvif ? "image/avif," + commonImages : commonImages, request.header("Accept"));
+                if (path.equals("/avif")) {
+                    return response(request, 200).body(ResponseBody.create(avif, MediaType.get("image/avif"))).build();
+                }
+                return image(request);
+            });
+
+            assertArrayEquals(supportsAvif ? avif : IMAGE, fetch(client, url -> true));
+            assertEquals(supportsAvif ? List.of("/start", "/avif") : List.of("/start", "/avif", "/png"), paths);
+        }
     }
 
     @Test
@@ -250,6 +288,81 @@ public final class PreviewClientTest {
         PreviewClient.checkPeer(first, first);
         assertThrows(IOException.class, () -> PreviewClient.checkPeer(first, second));
         assertThrows(IOException.class, () -> PreviewClient.checkPeer(privateAddress, privateAddress));
+    }
+
+    @Test
+    public void checksWellKnownNat64PrefixAndEmbeddedIpv4ForLiteralsDnsAndPeers() throws IOException {
+        String publicNat64 = "64:ff9b::808:808";
+        InetAddress nat64 = InetAddress.getByName(publicNat64);
+        InetAddress ipv4 = InetAddress.getByName("8.8.8.8");
+        assertNotNull(PreviewClient.url("https://[" + publicNat64 + "]/image", null));
+        assertEquals(List.of(ipv4, nat64), PreviewClient.publicAnswers(new InetAddress[] {ipv4, nat64}));
+        PreviewClient.checkPeer(nat64, nat64);
+        assertThrows(IOException.class, () -> PreviewClient.checkPeer(nat64, ipv4));
+        assertThrows(IOException.class, () -> PreviewClient.checkPeer(nat64, InetAddress.getByName("64:ff9b::909:909")));
+
+        for (String blocked : List.of("64:ff9b::", "64:ff9b::a00:1", "64:ff9b::7f00:1", "64:ff9b::6440:1",
+                "64:ff9b::a9fe:1", "64:ff9b::c000:201", "64:ff9b::c612:1", "64:ff9b::e000:1",
+                "64:ff9a::808:808", "64:ff9b:1::808:808", "64:ff9b::1:808:808")) {
+            InetAddress address = InetAddress.getByName(blocked);
+            assertNull(blocked, PreviewClient.url("https://[" + blocked + "]/image", null));
+            assertThrows(blocked, UnknownHostException.class,
+                    () -> PreviewClient.publicAnswers(new InetAddress[] {nat64, address}));
+            assertThrows(blocked, IOException.class, () -> PreviewClient.checkPeer(address, address));
+        }
+    }
+
+    @Test
+    public void admitsFourConcurrentDnsQueriesAndRejectsAnUnqueuedFifth() throws Exception {
+        InetAddress address = InetAddress.getByName("8.8.8.8");
+        ExecutorService callers = Executors.newFixedThreadPool(4);
+        CountDownLatch started = new CountDownLatch(4);
+        CountDownLatch release = new CountDownLatch(1);
+        List<Future<List<InetAddress>>> results = new ArrayList<>();
+        try {
+            for (int index = 0; index < 4; index++) {
+                results.add(callers.submit(() -> PreviewClient.resolve(() -> {
+                    started.countDown();
+                    release.await();
+                    return new InetAddress[] {address};
+                })));
+            }
+            assertTrue("All four DNS queries must run concurrently", started.await(1, TimeUnit.SECONDS));
+            UnknownHostException busy = assertThrows(UnknownHostException.class, () -> PreviewClient.resolve(() -> {
+                throw new AssertionError("The fifth DNS query must not run");
+            }));
+            assertEquals("Website preview DNS busy", busy.getMessage());
+
+            release.countDown();
+            for (Future<List<InetAddress>> result : results) {
+                assertEquals(List.of(address), result.get(1, TimeUnit.SECONDS));
+            }
+        } finally {
+            release.countDown();
+            callers.shutdownNow();
+            assertTrue(callers.awaitTermination(2, TimeUnit.SECONDS));
+        }
+    }
+
+    @Test
+    public void cancelsTimedOutDnsWork() throws InterruptedException {
+        CountDownLatch release = new CountDownLatch(1);
+        CountDownLatch interrupted = new CountDownLatch(1);
+        try {
+            UnknownHostException failure = assertThrows(UnknownHostException.class, () -> PreviewClient.resolve(() -> {
+                try {
+                    release.await();
+                    return new InetAddress[0];
+                } catch (InterruptedException cancelled) {
+                    interrupted.countDown();
+                    throw cancelled;
+                }
+            }));
+            assertEquals("Website preview DNS unavailable", failure.getMessage());
+            assertTrue("The timed-out query must be interrupted", interrupted.await(1, TimeUnit.SECONDS));
+        } finally {
+            release.countDown();
+        }
     }
 
     @Test

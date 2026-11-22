@@ -52,20 +52,17 @@ final class PublicAddress {
     static boolean allows(InetAddress address) {
         if (address == null) return false;
         byte[] bytes = address.getAddress();
+        if (bytes.length == 4) return allowsIpv4(bytes, 0);
+
         int first = bytes[0] & 255;
         int second = bytes[1] & 255;
         int third = bytes[2] & 255;
-        if (bytes.length == 4) {
-            // Exclude local, shared, benchmark, documentation and protocol allocations.
-            return first != 0 && first != 10 && first != 127 && first < 224
-                    && !(first == 100 && second >= 64 && second <= 127)
-                    && !(first == 169 && second == 254)
-                    && !(first == 172 && second >= 16 && second <= 31)
-                    && !(first == 192 && second == 0 && (third == 0 || third == 2))
-                    && !(first == 192 && second == 88 && third == 99)
-                    && !(first == 192 && second == 168)
-                    && !(first == 198 && (second == 18 || second == 19 || (second == 51 && third == 100)))
-                    && !(first == 203 && second == 0 && third == 113);
+        // RFC 6052's well-known prefix 64:ff9b::/96 embeds an IPv4 address in the final four bytes.
+        if (first == 0 && second == 0x64 && third == 0xff && (bytes[3] & 255) == 0x9b) {
+            for (int index = 4; index < 12; index++) {
+                if (bytes[index] != 0) return false;
+            }
+            return allowsIpv4(bytes, 12);
         }
 
         // Accept global unicast only. Exclude transition and special-purpose prefixes within it.
@@ -73,5 +70,21 @@ final class PublicAddress {
                 && !(first == 32 && (second == 2
                         || (second == 1 && (third <= 1 || (third == 13 && (bytes[3] & 255) == 184)))))
                 && !(first == 63 && (second == 254 || (second == 255 && third < 16)));
+    }
+
+    private static boolean allowsIpv4(byte[] bytes, int offset) {
+        int first = bytes[offset] & 255;
+        int second = bytes[offset + 1] & 255;
+        int third = bytes[offset + 2] & 255;
+        // Exclude local, shared, benchmark, documentation and protocol allocations.
+        return first != 0 && first != 10 && first != 127 && first < 224
+                && !(first == 100 && second >= 64 && second <= 127)
+                && !(first == 169 && second == 254)
+                && !(first == 172 && second >= 16 && second <= 31)
+                && !(first == 192 && second == 0 && (third == 0 || third == 2))
+                && !(first == 192 && second == 88 && third == 99)
+                && !(first == 192 && second == 168)
+                && !(first == 198 && (second == 18 || second == 19 || (second == 51 && third == 100)))
+                && !(first == 203 && second == 0 && third == 113);
     }
 }

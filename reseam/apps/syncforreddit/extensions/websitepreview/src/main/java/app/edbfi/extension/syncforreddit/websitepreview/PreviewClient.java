@@ -2,6 +2,7 @@
 
 package app.edbfi.extension.syncforreddit.websitepreview;
 
+import android.os.Build;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
@@ -45,9 +47,11 @@ final class PreviewClient {
     private static final int MAX_REDIRECTS = 3;
     private static final int MAX_URL_LENGTH = 4096;
     private static final long TIME_BUDGET_NANOS = TimeUnit.SECONDS.toNanos(12);
+    private static final String IMAGE_ACCEPT = "image/webp,image/png,image/jpeg,image/gif";
 
+    // Glide can start four source loads concurrently.
     private static final ThreadPoolExecutor DNS = new ThreadPoolExecutor(
-            0, 2, 30, TimeUnit.SECONDS, new SynchronousQueue<>(), work -> {
+            0, 4, 30, TimeUnit.SECONDS, new SynchronousQueue<>(), work -> {
                 Thread thread = new Thread(work, "Sync preview DNS");
                 thread.setDaemon(true);
                 return thread;
@@ -62,6 +66,7 @@ final class PreviewClient {
     }
 
     private final OkHttpClient client;
+    private final boolean supportsAvif;
 
     PreviewClient() {
         this(new OkHttpClient.Builder()
@@ -69,7 +74,7 @@ final class PreviewClient {
                 .cookieJar(CookieJar.NO_COOKIES)
                 .authenticator(Authenticator.NONE)
                 .proxyAuthenticator(Authenticator.NONE)
-                .dns(PreviewClient::lookup)
+                .dns(host -> resolve(() -> InetAddress.getAllByName(host)))
                 .connectionPool(new ConnectionPool(0, 1, TimeUnit.SECONDS))
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1))
                 .connectTimeout(3, TimeUnit.SECONDS)
@@ -84,11 +89,12 @@ final class PreviewClient {
                     checkPeer(connection.route().socketAddress().getAddress(), socket.getInetAddress());
                     return chain.proceed(chain.request());
                 })
-                .build());
+                .build(), Build.VERSION.SDK_INT);
     }
 
-    PreviewClient(OkHttpClient client) {
+    PreviewClient(OkHttpClient client, int sdkInt) {
         this.client = client;
+        this.supportsAvif = sdkInt >= Build.VERSION_CODES.S;
     }
 
     static void checkPeer(InetAddress selected, InetAddress peer) throws IOException {
@@ -105,10 +111,10 @@ final class PreviewClient {
         return Arrays.asList(addresses);
     }
 
-    private static List<InetAddress> lookup(String host) throws UnknownHostException {
+    static List<InetAddress> resolve(Callable<InetAddress[]> query) throws UnknownHostException {
         Future<InetAddress[]> lookup;
         try {
-            lookup = DNS.submit(() -> InetAddress.getAllByName(host));
+            lookup = DNS.submit(query);
         } catch (RejectedExecutionException ignored) {
             throw new UnknownHostException("Website preview DNS busy");
         }
@@ -196,11 +202,9 @@ final class PreviewClient {
             if (remaining < TimeUnit.MILLISECONDS.toNanos(1)) throw new RequestStopped("Website preview timed out");
             budget.request();
 
-            String accept = image ? "image/avif,image/webp,image/png,image/jpeg,image/gif"
-                    : "text/html,application/xhtml+xml";
             // Sync renames Okio's Timeout class. Set the budget through OkHttp's builder.
             Call call = client.newBuilder().callTimeout(remaining, TimeUnit.NANOSECONDS).build()
-                    .newCall(new Request.Builder().url(url).header("Accept", accept).build());
+                    .newCall(new Request.Builder().url(url).header("Accept", accept(image)).build());
             if (!scope.start(call)) throw new RequestStopped("Website preview cancelled");
             try (Response response = call.execute()) {
                 if (redirect(response.code())) {
@@ -225,11 +229,16 @@ final class PreviewClient {
         return code == 301 || code == 302 || code == 303 || code == 307 || code == 308;
     }
 
-    private static boolean supported(MediaType type, boolean image) {
+    private String accept(boolean image) {
+        if (!image) return "text/html,application/xhtml+xml";
+        return supportsAvif ? "image/avif," + IMAGE_ACCEPT : IMAGE_ACCEPT;
+    }
+
+    private boolean supported(MediaType type, boolean image) {
         String subtype = type.subtype();
         return image
                 ? type.type().equals("image") && (subtype.equals("png") || subtype.equals("jpeg")
-                        || subtype.equals("webp") || subtype.equals("gif") || subtype.equals("avif"))
+                        || subtype.equals("webp") || subtype.equals("gif") || (supportsAvif && subtype.equals("avif")))
                 : (type.type().equals("text") && subtype.equals("html"))
                         || (type.type().equals("application") && subtype.equals("xhtml+xml"));
     }
