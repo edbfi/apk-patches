@@ -20,12 +20,15 @@
 | Fix Tenor previews | Loads missing Tenor thumbnails from public GIF pages. | On |
 | Fix video downloads | Fixes downloaded Reddit videos having only audio. | On |
 | Fix View more comments | Fixes “View more” not loading further comments. | On |
-| Fix website previews and hide retired cloud backup | Loads eligible website previews directly in comments and link options. Hides retired cloud backup controls and keeps local backup and restore available. | On |
+| Fix website previews and hide retired cloud backup | Loads eligible website previews directly in comments and link options. Hides retired cloud backup controls and the Pushshift comment restore action. Keeps local backup and restore available. | On |
 | Hide Gfycat link previews | Hides broken Gfycat link previews. | On |
 | Use /user/ endpoint | Requests user profiles from /user/ instead of /u/. | Off |
 
 The existing per-account `Website previews` setting controls loading in comments and when long-pressing a link.
 Sync’s usual eligibility and Ultra access checks apply. Loading a preview contacts the linked site and its image host.
+
+Sync’s comment restore action used a retired Pushshift integration. The patch also hides its
+**Restore removed comments** entry in Ultra settings and Settings Search.
 
 ## Options
 

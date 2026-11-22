@@ -28,5 +28,5 @@
     <string name="fix_galleries">Fix galleries</string>
     <string name="fix_galleries_description">Restores loading Reddit galleries from the post listing.</string>
     <string name="fix_website_previews_and_backup">Fix website previews and hide retired cloud backup</string>
-    <string name="fix_website_previews_and_backup_description">Loads eligible website previews directly in comments and link options. Hides retired cloud backup controls and keeps local backup and restore available.</string>
+    <string name="fix_website_previews_and_backup_description">Loads eligible website previews directly in comments and link options. Hides retired cloud backup controls and the Pushshift comment restore action. Keeps local backup and restore available.</string>
 </resources>

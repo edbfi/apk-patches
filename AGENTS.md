@@ -197,6 +197,10 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
 - After changing Sync’s website previews, use a disposable profile with Ultra access. Open an eligible comment link
   with a public `og:image` inline and in Link options, then check the sheet’s retry with a missing image. Repeat with
   Website previews off and with a proxy configured. A guest profile can verify the access gate and link actions.
+- After changing Sync’s retired comment restore action, check discussion menus, comment-card long presses, Ultra
+  settings and Settings Search with ordinary, `[removed]` and `[deleted]` fixture comments. Cover the guest flow.
+  With synthetic Ultra eligibility and the restore flag on, use stock as the discussion control and a patch-off
+  build as the native card control.
 - Reseam's release job signs the bundle with its own key and attaches `edbfi-patches.reseam` and the Reseam source
   index `patches.json` to the GitHub release. Before the first Reseam release, review and commit the authorized
   publisher public key at `keys/reseam-signing.pub` for the release tag and provision the matching

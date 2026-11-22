@@ -106,6 +106,7 @@ val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
         }
 
         val applyWebsitePreviews = resolveWebsitePreviewEdits()
+        val hideCommentRestore = resolveCommentRestoreEdit()
 
         resources.editXml("xml", BACKUP_XML) {
             check(root.tag == "PreferenceScreen") { "Unexpected $BACKUP_XML root" }
@@ -138,5 +139,6 @@ val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
         // The backup status event also calls this method after the screen has been created.
         refreshCloudBackup.alwaysReturn()
         applyWebsitePreviews()
+        hideCommentRestore()
     }
 }
