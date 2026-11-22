@@ -13,6 +13,8 @@ import app.reseam.patch.method
 import app.reseam.patch.patch
 
 private const val MAIN_ACTIVITY = "com.andrewshu.android.reddit.MainActivity"
+private const val THEMED_ACTIVITY = "com.andrewshu.android.reddit.theme.BaseThemedActivity"
+private const val THEME_MANIFEST = "com.andrewshu.android.reddit.theme.manifest.ThemeManifest"
 private const val MOBILE_ADS_PROVIDER = "com.google.android.gms.ads.MobileAdsInitProvider"
 private const val APPLOVIN_PROVIDER = "com.applovin.sdk.AppLovinInitProvider"
 
@@ -30,7 +32,15 @@ private val allowBanner = method("rif banner ad eligibility") {
     params(MAIN_ACTIVITY)
     returns(Type.Boolean)
     flags(AccessFlags.PRIVATE)
-    calls { owner("com.andrewshu.android.reddit.theme.BaseThemedActivity") }
+    calls { owner(THEMED_ACTIVITY) }
+}
+
+private val allowNativeThreadAds = method("rif native thread ad eligibility") {
+    params()
+    returns(Type.Boolean)
+    flags(AccessFlags.PROTECTED)
+    calls { owner(THEMED_ACTIVITY); params(); returns(THEME_MANIFEST) }
+    calls { owner(THEME_MANIFEST); params(); returns(Type.Boolean) }
 }
 
 private val startConsentSdk = klass("com.andrewshu.android.reddit.ads.AdsGdprHelper")
@@ -48,6 +58,7 @@ val disableAds = patch(RifPatchStrings.disableAds) {
         // takes the existing no-helper path without changing the stored ads/feature preference.
         adHelpers.method
         allowBanner.method
+        allowNativeThreadAds.method
         startConsentSdk.method
         manifest.edit {
             val providers = findByTag("provider")
@@ -58,6 +69,8 @@ val disableAds = patch(RifPatchStrings.disableAds) {
         }
         adHelpers.alwaysReturn()
         allowBanner.alwaysReturn(false)
+        // The listing loader inserts native ad rows independently of the activity's helper.
+        allowNativeThreadAds.alwaysReturn(false)
         startConsentSdk.alwaysReturn()
     }
 }
