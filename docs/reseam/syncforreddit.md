@@ -24,10 +24,10 @@
 | Hide Gfycat link previews | Hides broken Gfycat link previews. | On |
 | Use /user/ endpoint | Requests user profiles from /user/ instead of /u/. | Off |
 
-## Options
-
 The existing per-account `Website previews` setting controls loading in comments and when long-pressing a link.
 Sync’s usual eligibility and Ultra access checks apply. Loading a preview contacts the linked site and its image host.
+
+## Options
 
 ### Fix Imgur
 

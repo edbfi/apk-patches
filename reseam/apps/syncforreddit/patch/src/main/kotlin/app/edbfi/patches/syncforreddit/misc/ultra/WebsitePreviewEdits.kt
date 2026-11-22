@@ -137,6 +137,7 @@ private val sheetImage = sheetLoad.points("Load the link sheet website image") {
 
 internal fun resolveWebsitePreviewEdits(): () -> Unit {
     listOf(websiteEligibility, isYouTube, appContext, registerModels).forEach { it.method }
+    // Both sheet entry points must still reach the image loader we edit.
     listOf(inlineImage, sheetImage, sheetFirstLoad, sheetRetry).forEach { it.index }
     check(registerModels.method.parameterTypes.last() == "Lw2/e;") { "Unexpected Glide registry type" }
 

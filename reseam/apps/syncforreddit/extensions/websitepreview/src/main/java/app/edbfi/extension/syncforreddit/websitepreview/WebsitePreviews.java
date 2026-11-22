@@ -75,6 +75,7 @@ public final class WebsitePreviews {
         HttpUrl url = stockModel != null && stockModel.startsWith(STOCK_PROXY)
                 ? PreviewClient.url(stockModel.substring(STOCK_PROXY.length()), null)
                 : null;
+        // A cache hit would skip the fetcher's current account and proxy checks on rebind.
         return requests.w(url == null ? null : new Page(url)).h(d3.j.b).i0(true);
     }
 

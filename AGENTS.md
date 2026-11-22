@@ -192,9 +192,9 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
   Install SDK Platform 36 and Build Tools 36.0.0 under `ANDROID_HOME`, set `ANDROID_SERIAL` and run
   `bash reseam/tests/android-framework/run.sh reseam/build/reseam/unsigned/edbfi-patches.reseam` after building.
   For rif Settings Search, patch rif 5.6.22 with that same bundle and pass the resulting APK as the second argument.
-- After changing Sync’s backup patch, test backup and restore on a disposable profile. Change a harmless setting
+- After changing Sync’s Backup screen, test backup and restore on a disposable profile. Change a harmless setting
   after saving, restore the backup, and verify the saved value after a cold start.
-- Test Sync’s website previews on a disposable profile with existing Ultra access. Open an eligible comment link
+- After changing Sync’s website previews, use a disposable profile with Ultra access. Open an eligible comment link
   with a public `og:image` inline and in Link options, then check the sheet’s retry with a missing image. Repeat with
   Website previews off and with a proxy configured. A guest profile can verify the access gate and link actions.
 - Reseam's release job signs the bundle with its own key and attaches `edbfi-patches.reseam` and the Reseam source
