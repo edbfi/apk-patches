@@ -194,6 +194,9 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
   For rif Settings Search, patch rif 5.6.22 with that same bundle and pass the resulting APK as the second argument.
 - After changing Sync’s Backup screen, test backup and restore on a disposable profile. Change a harmless setting
   after saving, restore the backup, and verify the saved value after a cold start.
+- After changing Sync’s Ultra settings, check the Settings entry summary, then open Ultra as a guest and with
+  a subscribed profile. Check that both describe local tag and paint storage and omit the cloud-backup shortcut
+  and terms. Open **Backup now** from Settings Search to verify local backup is still reachable.
 - After changing Sync’s website previews, use a disposable profile with Ultra access. Open an eligible comment link
   with a public `og:image` inline and in Link options, then check the sheet’s retry with a missing image. Repeat with
   Website previews off and with a proxy configured. A guest profile can verify the access gate and link actions.
