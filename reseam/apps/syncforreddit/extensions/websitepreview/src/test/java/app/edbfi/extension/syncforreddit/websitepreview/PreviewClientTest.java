@@ -61,7 +61,7 @@ public final class PreviewClientTest {
     }
 
     private static byte[] fetch(PreviewClient client, PreviewClient.Access access) throws IOException {
-        return client.fetch(PAGE, access, new PreviewClient.RequestScope(), bytes -> bytes);
+        return client.fetch(PAGE, access, new PreviewClient.RequestScope(), bytes -> bytes).image;
     }
 
     @Test
@@ -92,7 +92,8 @@ public final class PreviewClientTest {
     }
 
     @Test
-    public void triesSecondImageAfterDecodeFailure() throws IOException {
+    public void reportsFinalUrlOfSecondImageAfterDecodeFailure() throws IOException {
+        HttpUrl finalUrl = HttpUrl.get("https://images.example.net/cover?size=2");
         PreviewClient client = client(chain -> {
             Request request = chain.request();
             switch (request.url().encodedPath()) {
@@ -102,18 +103,22 @@ public final class PreviewClientTest {
                 case "/broken":
                     return response(request, 200).body(ResponseBody.create(new byte[] {0}, MediaType.get("image/avif")))
                             .build();
+                case "/image":
+                    return redirect(request, finalUrl.toString());
                 default:
                     return image(request);
             }
         });
         List<Integer> decodedLengths = new ArrayList<>();
-        byte[] actual = client.fetch(PAGE, url -> true, new PreviewClient.RequestScope(), bytes -> {
-            decodedLengths.add(bytes.length);
-            if (bytes.length == 1) throw new IOException("Unsupported encoded image");
-            return bytes;
-        });
+        PreviewClient.FetchedImage<byte[]> actual =
+                client.fetch(PAGE, url -> true, new PreviewClient.RequestScope(), bytes -> {
+                    decodedLengths.add(bytes.length);
+                    if (bytes.length == 1) throw new IOException("Unsupported encoded image");
+                    return bytes;
+                });
 
-        assertArrayEquals(IMAGE, actual);
+        assertArrayEquals(IMAGE, actual.image);
+        assertEquals(finalUrl, actual.url);
         assertEquals(List.of(1, IMAGE.length), decodedLengths);
     }
 

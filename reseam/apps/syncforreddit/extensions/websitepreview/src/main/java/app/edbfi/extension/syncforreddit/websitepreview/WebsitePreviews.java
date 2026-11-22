@@ -160,9 +160,13 @@ public final class WebsitePreviews {
             Bitmap image = null;
             try {
                 if (Looper.myLooper() == Looper.getMainLooper()) throw new IOException("Preview requires a worker");
-                image = client.fetch(page.url, this::stillAllowed, scope, WebsitePreviews::decode);
-                // Access and Android proxy settings may have changed while the image was loading.
-                if (!stillAllowed(page.url)) throw new IOException("Website preview disabled");
+                PreviewClient.FetchedImage<Bitmap> fetched =
+                        client.fetch(page.url, this::stillAllowed, scope, WebsitePreviews::decode);
+                image = fetched.image;
+                // Access and proxy settings may have changed while the image was loading.
+                if (!stillAllowed(page.url) || !allows(context, fetched.url)) {
+                    throw new IOException("Website preview disabled");
+                }
             } catch (IOException | RuntimeException ignored) {
                 if (image != null) image.recycle();
                 if (!scope.isCancelled()) callback.c(new IOException("Website preview unavailable"));

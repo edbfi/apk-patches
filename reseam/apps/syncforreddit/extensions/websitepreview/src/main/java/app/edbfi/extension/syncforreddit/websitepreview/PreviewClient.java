@@ -177,14 +177,26 @@ final class PreviewClient {
         }
     }
 
-    <T> T fetch(HttpUrl page, Access access, RequestScope scope, ImageDecoder<T> decoder) throws IOException {
+    static final class FetchedImage<T> {
+        final HttpUrl url;
+        final T image;
+
+        FetchedImage(HttpUrl url, T image) {
+            this.url = url;
+            this.image = image;
+        }
+    }
+
+    <T> FetchedImage<T> fetch(HttpUrl page, Access access, RequestScope scope, ImageDecoder<T> decoder)
+            throws IOException {
         long deadline = System.nanoTime() + TIME_BUDGET_NANOS;
         Transfer html = get(page, false, access, scope, deadline, new TransferBudget(MAX_PAGE_BYTES));
         TransferBudget imageBudget = new TransferBudget(MAX_IMAGE_BYTES);
         IOException failure = new IOException("Website has no supported preview image");
         for (HttpUrl image : imageUrls(html)) {
             try {
-                return decoder.decode(get(image, true, access, scope, deadline, imageBudget).bytes);
+                Transfer response = get(image, true, access, scope, deadline, imageBudget);
+                return new FetchedImage<>(response.url, decoder.decode(response.bytes));
             } catch (RequestStopped stopped) {
                 throw stopped;
             } catch (IOException unavailable) {
