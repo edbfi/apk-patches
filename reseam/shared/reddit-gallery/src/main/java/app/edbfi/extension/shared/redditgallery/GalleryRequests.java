@@ -36,7 +36,9 @@ public final class GalleryRequests {
         try {
             URI url = new URI(original);
             String host = url.getHost();
-            if (!"https".equals(url.getScheme()) || (!"oauth.reddit.com".equals(host) && !"api.reddit.com".equals(host))
+            if (!"https".equals(url.getScheme())
+                    || (!"oauth.reddit.com".equals(host) && !"api.reddit.com".equals(host)
+                            && !"www.reddit.com".equals(host))
                     || url.getRawUserInfo() != null || url.getPort() != -1
                     || !"/api/info.json".equals(url.getRawPath())) {
                 return original;

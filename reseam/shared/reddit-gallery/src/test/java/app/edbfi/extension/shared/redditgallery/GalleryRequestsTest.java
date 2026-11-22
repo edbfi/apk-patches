@@ -42,11 +42,13 @@ public final class GalleryRequestsTest {
     }
 
     @Test
-    public void rewritesTheListingOnItsOriginalRedditApiHost() {
-        for (String host : new String[] {"oauth.reddit.com", "api.reddit.com"}) {
+    public void rewritesTheListingOnItsOriginalRedditHost() {
+        for (String host : new String[] {"oauth.reddit.com", "api.reddit.com", "www.reddit.com"}) {
             assertEquals("https://" + host + "/by_id/t3_abc123.json?raw_json=1",
                     GalleryRequests.byIdUrl("https://" + host + "/api/info.json?raw_json=1&id=t3_abc123"));
         }
+        assertEquals("https://www.reddit.com/by_id/t3_abc123.json?raw_json=1",
+                GalleryRequests.byIdUrl("https://www.reddit.com/api/info.json?id=t3_abc123"));
         for (String original : new String[] {"https://oauth.reddit.com.example.org/api/info.json?id=t3_abc123",
                 "https://oauth.reddit.com/api/info.json?id=t3_one,t3_two",
                 "https://oauth.reddit.com/api/info.json?id=t1_abc123"}) {
