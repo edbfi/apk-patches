@@ -81,7 +81,7 @@ internal fun PatchRuntime.resolveUserAnnotationEdits(): () -> Unit {
         val fetch = cloudRequest("get$annotations")
         val callback = fetch.parameterTypes.single()
         val worker = klass(fetch.owner)
-        val complete = methods("Complete the $annotations sync worker") {
+        val onFinished = methods("Handle the $annotations sync result") {
             inClass(worker)
             params(callback, CALLABLE_RESULT)
             returns(Type.Void)
@@ -91,7 +91,7 @@ internal fun PatchRuntime.resolveUserAnnotationEdits(): () -> Unit {
                 params()
                 returns(Type.Void)
             }
-        }.single().points("Finish the worker callback") {
+        }.single().points("Notify the $annotations callback on completion") {
             invokeInterface {
                 owner(callback)
                 name("onFinished")
@@ -99,8 +99,8 @@ internal fun PatchRuntime.resolveUserAnnotationEdits(): () -> Unit {
                 returns(Type.Void)
             }
         }.single().callee()
-        complete.method
-        fetch to complete
+        onFinished.method
+        fetch to onFinished
     }
 
     val menus = listOf("Paint", "Tag").map { annotation ->
@@ -168,9 +168,9 @@ internal fun PatchRuntime.resolveUserAnnotationEdits(): () -> Unit {
         localWrites.forEach { save -> save.after { returnVoid() } }
         batchTags.alwaysReturn()
         importVisibility.before { capture("visible").assign(bool(false)) }
-        jobs.forEach { (fetch, complete) ->
+        jobs.forEach { (fetch, onFinished) ->
             fetch.replace {
-                param(0).call(complete)
+                param(0).call(onFinished)
                 returnVoid()
             }
         }

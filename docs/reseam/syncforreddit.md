@@ -20,7 +20,7 @@
 | Fix Tenor previews | Loads missing Tenor thumbnails from public GIF pages. | On |
 | Fix video downloads | Fixes downloaded Reddit videos having only audio. | On |
 | Fix View more comments | Fixes “View more” not loading further comments. | On |
-| Fix website previews and hide retired cloud backup | Loads eligible website previews directly in comments and link options. Hides retired cloud backup controls and the Pushshift comment restore action. Keeps local backup and restore available. | On |
+| Fix website previews and hide retired cloud backup | Loads eligible website previews directly in comments and link options. Hides retired cloud backup controls and the Pushshift comment restore action. Keeps local backup and restore available. Stores user tags and paints on the device. | On |
 | Hide Gfycat link previews | Hides broken Gfycat link previews. | On |
 | Use /user/ endpoint | Requests user profiles from /user/ instead of /u/. | Off |
 
@@ -43,6 +43,7 @@ patched APK so the app can request albums and covers. This option has no preset 
 - **Some Tenor thumbnails stay blank.** Sync contacts the public GIF page, which must publish a preview image.
 - **Website previews can show a missing image.** Sync checks up to two distinct public `og:image` URLs in page order within one request budget. It skips previews when a proxy is configured and discards a loaded image if previews are off or a proxy is configured when loading finishes.
 - **Sync Ultra still advertises cloud backup.** The Ultra settings page has its own cloud backup text and shortcut. The patch removes the controls on the Backup screen.
-- **User tags and paints stay on the device.** Adding or editing an entry still looks up the Reddit user.
-  Paint controls require Sync Ultra. Where shown, **Force refresh** does nothing. **Clear all** shows “TODO”,
-  so remove entries individually. The tag manager hides **Import local**, which used the retired cloud service.
+- **Tags and paints do not sync across devices.** Sync used its cloud service to sync and clear entries. This patch
+  saves individual changes locally. Where shown, **Force refresh** does nothing, and **Clear all** shows “TODO”.
+  Remove entries individually. The tag manager hides **Import local**, which uploaded tags. Paint controls require
+  Sync Ultra.

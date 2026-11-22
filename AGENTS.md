@@ -201,6 +201,10 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
   settings and Settings Search with ordinary, `[removed]` and `[deleted]` fixture comments. Cover the guest flow.
   With synthetic Ultra eligibility and the restore flag on, use stock as the discussion control and a patch-off
   build as the native card control.
+- After changing Sync’s tags or paints, add, edit and remove a guest tag. Cold-start Sync after each change and
+  check the author in a discussion. With Ultra access, check paint color persistence and both management menus.
+  **Force refresh** does nothing where shown, **Clear all** preserves entries and shows “TODO”, and the tag menu
+  hides **Import local**.
 - Reseam's release job signs the bundle with its own key and attaches `edbfi-patches.reseam` and the Reseam source
   index `patches.json` to the GitHub release. Before the first Reseam release, review and commit the authorized
   publisher public key at `keys/reseam-signing.pub` for the release tag and provision the matching
