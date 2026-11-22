@@ -20,11 +20,14 @@
 | Fix Tenor previews | Loads missing Tenor thumbnails from public GIF pages. | On |
 | Fix video downloads | Fixes downloaded Reddit videos having only audio. | On |
 | Fix View more comments | Fixes “View more” not loading further comments. | On |
+| Fix website previews and hide retired cloud backup | Loads eligible website previews directly in comments and link options. Hides retired cloud backup controls and keeps local backup and restore available. | On |
 | Hide Gfycat link previews | Hides broken Gfycat link previews. | On |
-| Hide retired cloud backup | Removes cloud backup controls from the Backup screen and stops its cloud backup check. Keeps local backup and restore available. | On |
 | Use /user/ endpoint | Requests user profiles from /user/ instead of /u/. | Off |
 
 ## Options
+
+The existing per-account `Website previews` setting controls loading in comments and when long-pressing a link.
+Sync’s usual eligibility and Ultra access checks apply. Loading a preview contacts the linked site and its image host.
 
 ### Fix Imgur
 
@@ -35,4 +38,5 @@ patched APK so the app can request albums and covers. This option has no preset 
 
 - **Other discussions can miss posts or show posts with different links.** It uses Reddit search.
 - **Some Tenor thumbnails stay blank.** Sync contacts the public GIF page, which must publish a preview image.
+- **Website previews can show a missing image.** Sync checks up to two distinct public `og:image` URLs in page order within one request budget. It skips previews when a proxy is configured and discards a loaded image if previews are off or a proxy is configured when loading finishes.
 - **Sync Ultra still advertises cloud backup.** The Ultra settings page has its own cloud backup text and shortcut. The patch removes the controls on the Backup screen.

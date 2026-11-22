@@ -27,6 +27,6 @@
     <string name="fix_imgur_description">Loads Imgur albums and covers and uploads images through the Imgur API.</string>
     <string name="fix_galleries">Fix galleries</string>
     <string name="fix_galleries_description">Restores loading Reddit galleries from the post listing.</string>
-    <string name="hide_retired_cloud_backup">Hide retired cloud backup</string>
-    <string name="hide_retired_cloud_backup_description">Removes cloud backup controls from the Backup screen and stops its cloud backup check. Keeps local backup and restore available.</string>
+    <string name="fix_website_previews_and_backup">Fix website previews and hide retired cloud backup</string>
+    <string name="fix_website_previews_and_backup_description">Loads eligible website previews directly in comments and link options. Hides retired cloud backup controls and keeps local backup and restore available.</string>
 </resources>

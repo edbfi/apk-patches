@@ -51,8 +51,8 @@ private fun XmlDocument.requirePreference(key: String, tag: String) =
         check(it.tag == tag) { "Expected $key to be a $tag" }
     }
 
-val syncUltra = patch(SyncPatchStrings.hideRetiredCloudBackup) {
-    description(SyncPatchStrings.hideRetiredCloudBackupDescription)
+val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
+    description(SyncPatchStrings.fixWebsitePreviewsAndBackupDescription)
     compatibleWith(syncForReddit)
 
     execute {
@@ -105,6 +105,8 @@ val syncUltra = patch(SyncPatchStrings.hideRetiredCloudBackup) {
             "Unexpected backup preference setup order"
         }
 
+        val applyWebsitePreviews = resolveWebsitePreviewEdits()
+
         resources.editXml("xml", BACKUP_XML) {
             check(root.tag == "PreferenceScreen") { "Unexpected $BACKUP_XML root" }
             val category = requirePreference("ultra_backup", "PreferenceCategory")
@@ -135,5 +137,6 @@ val syncUltra = patch(SyncPatchStrings.hideRetiredCloudBackup) {
         cloudSetup.before { returnVoid() }
         // The backup status event also calls this method after the screen has been created.
         refreshCloudBackup.alwaysReturn()
+        applyWebsitePreviews()
     }
 }
