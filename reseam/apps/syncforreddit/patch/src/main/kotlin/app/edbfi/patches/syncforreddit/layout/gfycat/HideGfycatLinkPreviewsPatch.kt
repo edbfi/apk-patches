@@ -28,6 +28,7 @@ import app.reseam.patch.point
 import app.reseam.patch.types.Instruction
 import app.reseam.patch.types.MethodRef
 
+// Sync 23033's RedditLinkPreview constructor (wa.e) assigns 3 to its inherited media type.
 private const val PLAIN_LINK = 3
 private const val STRING_BUILDER = "Ljava/lang/StringBuilder;"
 
