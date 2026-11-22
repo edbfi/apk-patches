@@ -159,9 +159,23 @@ reseam patch app.apk --bundle tmp/reseam-preview/edbfi-patches.reseam \
   --trust "$(cat tmp/reseam-preview/bundle.pub)" --output patched.apk
 ```
 
-Reseam signs APKs with an ECDSA P-256 key. To update an existing RSA-signed installation,
-re-sign a copy of the output with the same RSA key and verify the APK certificate matches
-before installing the update.
+Reseam Manager 1.0.1 requires Android 8.0 or later. The Sync and rif APKs produced by
+Manager and CLI 1.0.1 use APK Signature Scheme v2 and require Android 7.0 or later.
+To update an existing ECDSA P-256 installation, put its original key and certificate in a
+password-protected PKCS#12 (`.p12`) file with a single private-key entry.
+In Manager, use **Settings → Signing key → Import**. With the CLI, add
+`--keystore signing.p12` to the command above and set `RESEAM_KEYSTORE_PASSWORD` to the
+file's password.
+
+For an existing RSA-signed installation, re-sign a copy of the output with its original
+key and certificate.
+
+For either signing key type, run the following command on the update and on a copy of the
+installed APK. Verify that the signer certificate SHA-256 digests match before updating.
+
+```sh
+apksigner verify --min-sdk-version 24 --verbose --print-certs patched.apk
+```
 
 ## Verify a download
 
