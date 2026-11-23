@@ -27,7 +27,8 @@
 **Settings → Link handling → Website previews** controls Open Graph images in comments and in **Link options**
 when you long-press a link. It is on by default, uses Sync’s existing per-account setting and appears in Settings
 Search. Signed-out profiles can use it. Sync’s usual website URL exclusions apply. Loading contacts the linked
-site and its image host. Tap a failed image in **Link options** to retry.
+site and its image host. Tap a failed image in **Link options** to retry. YouTube links use Sync’s separate preview
+handler, which still requires Ultra access.
 
 Sync’s comment restore action used a retired Pushshift integration. The patch also hides its
 **Restore removed comments** entry in Ultra settings and Settings Search.

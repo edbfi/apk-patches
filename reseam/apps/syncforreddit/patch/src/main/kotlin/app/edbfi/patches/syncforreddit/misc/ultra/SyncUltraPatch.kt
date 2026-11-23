@@ -164,6 +164,7 @@ val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
                 }
             }
         }
+        // The shortcut uses a saved instruction index. Remove it before the visibility edit shifts that index.
         removeCloudBackupShortcut()
         removeUltraPreviewVisibility()
         cloudSetup.before { returnVoid() }

@@ -42,10 +42,11 @@ private val logUpdatedConfig = methods("Log the updated comment restore flag") {
 
 private val settingsSearch = klass("Settings search") {
     sourceFile("SearchPreferencesFragment.java")
+    hasInstanceField("java.util.ArrayList")
     strings("ultra_disabled")
 }
 
-private val indexablePreference = methods("Check whether a preference belongs in Settings Search") {
+internal val indexablePreference = methods("Check whether a preference belongs in Settings Search") {
     inClass(settingsSearch)
     strings("ultra_", "ultra_disabled")
     flags(AccessFlags.PRIVATE)

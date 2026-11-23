@@ -52,17 +52,6 @@ private val readSettings = methods("Read Sync's per-account website preview pref
     strings(MAIN_SETTINGS, SITE_PREVIEW_SETTING)
 }.single()
 
-private val searchablePreference = methods("Filter keys in Sync's Settings Search") {
-    inClass(klass("Search preferences fragment") {
-        sourceFile("SearchPreferencesFragment.java")
-        hasInstanceField("java.util.ArrayList")
-    })
-    strings("ultra_", "ultra_disabled")
-    flags(AccessFlags.PRIVATE)
-    params(Type.String)
-    returns(Type.Boolean)
-}.single()
-
 private val stockImageUrl = methods("Build the stock website preview URL") {
     inClass(previewHelper)
     params(Type.String)
@@ -185,7 +174,7 @@ private val sheetImage = sheetLoad.points("Load the link sheet website image") {
 }.single()
 
 internal fun resolveWebsitePreviewEdits(): () -> Unit {
-    listOf(stockEligibility, eligibleLink, isYouTube, appContext, registerModels, searchablePreference).forEach { it.method }
+    listOf(stockEligibility, eligibleLink, isYouTube, appContext, registerModels, indexablePreference).forEach { it.method }
     // Resolve the store from the call with the same argument that Sync uses to load this key.
     val mainStore = readSettings.points("Get the main settings store") {
         invokeStatic {
@@ -224,7 +213,7 @@ internal fun resolveWebsitePreviewEdits(): () -> Unit {
             ))
         }
         // Search filters Ultra keys regardless of which screen declares them. Only index the relocated switch.
-        searchablePreference.before {
+        indexablePreference.before {
             val matches = string(SITE_PREVIEW_SETTING).callVirtual(
                 "java.lang.String", "equals", "(Ljava/lang/Object;)Z", param(0),
             )
