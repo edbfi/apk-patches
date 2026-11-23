@@ -146,6 +146,7 @@ val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
         val removeCloudBackupShortcut = resolveCloudBackupShortcutEdit()
         val removeUltraPreviewVisibility = resolveUltraPreviewVisibilityEdit()
         val enableImageText = resolveImageTextEdits()
+        val enableTranslation = resolveTranslationEdits()
 
         listOf(ULTRA_XML, SETTINGS_XML, LINKS_XML).forEach { layout ->
             check(resources.paths("xml", layout).size == 1) { "Expected one $layout layout" }
@@ -159,11 +160,13 @@ val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
                         val addAuthorColorSettings = ultra.resolveAuthorColorSettingsEdit()
                         val updateUltraEntry = settings.resolveUltraEntryEdit()
                         val moveWebsitePreviewSettings = ultra.resolveWebsitePreviewSettingsEdit(links)
+                        val updateTranslationSettings = ultra.resolveTranslationSettingsLayoutEdit()
                         moveWebsitePreviewSettings()
                         removeCloudBackup()
                         updateUltraSettings()
                         addAuthorColorSettings()
                         updateUltraEntry()
+                        updateTranslationSettings()
                     }
                 }
             }
@@ -179,5 +182,6 @@ val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
         keepUserAnnotationsLocal()
         addAuthorColors()
         enableImageText()
+        enableTranslation()
     }
 }

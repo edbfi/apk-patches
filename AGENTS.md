@@ -196,7 +196,11 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
   after saving, restore the backup, and verify the saved value after a cold start.
 - For Sync’s locally implemented features, use a fresh, unsubscribed install on a disposable device as the primary
   check, through the app’s normal UI. Archived, genuinely subscribed installs are optional comparison controls.
-  Positive ML Kit translation checks require a device with Google Play services.
+  Use a device with Google Play services to verify automatic detection and successful **Translate all** output.
+- After changing Sync’s translation, open an eligible comment and text post as a guest and check their translation
+  actions. Use **Action visibility → Translate** to turn **Translate all** off and back on. Check source selection,
+  cancel and retry, missing Play services and model availability, and the return to the discussion. With ML Kit
+  available, check the English result against known source text and confirm the original text is preserved.
 - After changing Sync’s image text recognition, set `ANDROID_SERIAL` to the disposable device and run
   `bash reseam/tests/android-framework/image-text.sh reseam/build/reseam/unsigned/edbfi-patches.reseam`.
   Open an image in the guest viewer and choose **Extract text**. With Play services and the ML Kit Latin OCR module,
