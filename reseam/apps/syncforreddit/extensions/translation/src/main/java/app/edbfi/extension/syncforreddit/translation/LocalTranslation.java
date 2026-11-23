@@ -154,6 +154,7 @@ public final class LocalTranslation implements View.OnAttachStateChangeListener,
             return;
         }
 
+        // These calls use Sync 23033's R8 names, checked in TranslationApi.kt before patching.
         int availability = GoogleApiAvailability.q().i(view.getContext());
         if (availability != 0) {
             String message = switch (availability) {

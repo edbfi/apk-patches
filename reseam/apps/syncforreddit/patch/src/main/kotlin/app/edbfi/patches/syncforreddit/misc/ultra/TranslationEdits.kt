@@ -23,10 +23,6 @@ import app.reseam.patch.skipWhen
 private const val VIEW = "android.view.View"
 private const val FRAGMENT = "androidx.fragment.app.Fragment"
 private const val CONTENT_VALUES_ARRAY = "[Landroid/content/ContentValues;"
-private const val IDENTIFICATION = "com.google.mlkit.nl.languageid.LanguageIdentification"
-private const val IDENTIFIER = "com.google.mlkit.nl.languageid.LanguageIdentifier"
-private const val TRANSLATOR = "com.google.mlkit.nl.translate.Translator"
-private const val TASK = "com.google.android.gms.tasks.Task"
 private const val ATTRIBUTION = "Translated by Google"
 private const val STOCK_BADGE = "[Translated by Google](translate)"
 private const val SAVE_TRANSLATION = "edbfiSaveTranslation"
@@ -198,6 +194,7 @@ private fun MethodTarget.identificationStart(): PointTarget {
 }
 
 internal fun PatchRuntime.resolveTranslationEdits(): () -> Unit {
+    bytecode.requireTranslationApi()
     val removeGates = resolveTranslationGates()
     val removeSettingsCode = resolveTranslationSettingsCode()
     val single = klass("Single translation progress sheet") {
@@ -304,12 +301,18 @@ internal fun PatchRuntime.resolveTranslationEdits(): () -> Unit {
             argument(1) { string(ATTRIBUTION) }
         }.all.also { check(it.size == count) { "Expected $count translation marker checks, found ${it.size}" } }
     }
-    val attribution = methods("Format an inline translation with an attribution badge") {
-        strings(STOCK_BADGE)
-        params("Lxa/d;", Type.String, Type.String)
-        returns(Type.String)
-    }.all
-    check(attribution.size == 2) { "Expected two translation attribution formatters, found ${attribution.size}" }
+    val attribution = listOf("comment" to saveSingleBody, "self-text" to saveSingleSelfText).map { (kind, save) ->
+        methods("Format a $kind translation with an attribution badge") {
+            calledBy(save)
+            strings(STOCK_BADGE, "\n\n-----\n")
+            flags(AccessFlags.PUBLIC or AccessFlags.STATIC)
+            paramCount(3)
+            param(1, Type.String)
+            param(2, Type.String)
+            returns(Type.String)
+        }.single()
+    }
+    check(attribution.map { it.ref }.distinct().size == 2) { "Expected distinct comment and self-text formatters" }
     attribution.forEach { it.points("The remote badge markup") { string(STOCK_BADGE) }.single().index }
 
     val query = bulk.methods("Query the comments for discussion translation") {
