@@ -209,8 +209,10 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
   With synthetic Ultra eligibility and the restore flag on, use stock as the discussion control and a patch-off
   build as the native card control.
 - After changing Sync’s tags or paints, add, edit and remove a guest tag. Cold-start Sync after each change and
-  check the author in a discussion. Exercise both management menus and verify paint color persistence when the
-  paint UI is available. The existing paint controls still depend on native Ultra access.
+  check the author in a discussion. Pick and edit an author color as a guest, then remove it in **Settings →
+  Sync Ultra → Local author colors**. Cold-start Sync after each change and compare the colored author with
+  another author in the same discussion. Rotate an open color editor from both entry points with an incomplete
+  hex value, then check Save and Cancel and their return screens.
   **Force refresh** does nothing where shown, **Clear all** preserves entries and shows “TODO”, and the tag menu
   hides **Import local**.
 - Reseam's release job signs the bundle with its own key and attaches `edbfi-patches.reseam` and the Reseam source

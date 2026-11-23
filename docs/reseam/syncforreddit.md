@@ -20,7 +20,7 @@
 | Fix Tenor previews | Loads missing Tenor thumbnails from public GIF pages. | On |
 | Fix video downloads | Fixes downloaded Reddit videos having only audio. | On |
 | Fix View more comments | Fixes “View more” not loading further comments. | On |
-| Fix website previews and hide retired cloud backup | Loads eligible website previews directly in comments and link options. Hides retired cloud backup controls and the Pushshift comment restore action. Keeps local backup and restore available. Stores user tags and paints on the device. | On |
+| Fix website previews and hide retired cloud backup | Loads eligible website previews directly in comments and link options. Hides retired cloud backup controls and the Pushshift comment restore action. Keeps local backup and restore available. Stores user tags and lets guests color comment authors on the device. | On |
 | Hide Gfycat link previews | Hides broken Gfycat link previews. | On |
 | Use /user/ endpoint | Requests user profiles from /user/ instead of /u/. | Off |
 
@@ -32,6 +32,10 @@ handler, which still requires Ultra access.
 
 Sync’s comment restore action used a retired Pushshift integration. The patch also hides its
 **Restore removed comments** entry in Ultra settings and Settings Search.
+
+Open **Comment options → Local author color** to pick a color for the author. Use **Settings → Sync Ultra →
+Local author colors** to edit or remove saved colors. Both controls work while signed out. Colors are stored
+with the active profile and highlight that author’s name in comments.
 
 ## Options
 
@@ -45,7 +49,6 @@ patched APK so the app can request albums and covers. This option has no preset 
 - **Other discussions can miss posts or show posts with different links.** It uses Reddit search.
 - **Some Tenor thumbnails stay blank.** Sync contacts the public GIF page, which must publish a preview image.
 - **Website previews can show a missing image.** Sync checks up to two distinct public `og:image` URLs in page order within one request budget. It skips previews when a proxy is configured and discards a loaded image if previews are off or a proxy is configured when loading finishes.
-- **Tags and paints do not sync across devices.** Sync used its cloud service to sync and clear entries. This patch
-  saves individual changes locally. Where shown, **Force refresh** does nothing, and **Clear all** shows “TODO”.
-  Remove entries individually. The tag manager hides **Import local**, which uploaded tags. Paint controls require
-  Sync Ultra.
+- **Tags and author colors are device-local.** In Sync’s built-in managers, **Force refresh** does nothing and
+  **Clear all** shows “TODO” where those actions appear. Remove entries individually. The tag manager hides
+  **Import local**, which uploaded tags.

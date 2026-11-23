@@ -142,6 +142,7 @@ val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
         val applyWebsitePreviews = resolveWebsitePreviewEdits()
         val hideCommentRestore = resolveCommentRestoreEdit()
         val keepUserAnnotationsLocal = resolveUserAnnotationEdits()
+        val addAuthorColors = resolveAuthorColorEdits()
         val removeCloudBackupShortcut = resolveCloudBackupShortcutEdit()
         val removeUltraPreviewVisibility = resolveUltraPreviewVisibilityEdit()
 
@@ -154,11 +155,13 @@ val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
                     resources.xml("xml", LINKS_XML).use { links ->
                         val removeCloudBackup = backup.resolveBackupLayoutEdits()
                         val updateUltraSettings = ultra.resolveUltraSettingsLayoutEdits()
+                        val addAuthorColorSettings = ultra.resolveAuthorColorSettingsEdit()
                         val updateUltraEntry = settings.resolveUltraEntryEdit()
                         val moveWebsitePreviewSettings = ultra.resolveWebsitePreviewSettingsEdit(links)
                         moveWebsitePreviewSettings()
                         removeCloudBackup()
                         updateUltraSettings()
+                        addAuthorColorSettings()
                         updateUltraEntry()
                     }
                 }
@@ -173,5 +176,6 @@ val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
         applyWebsitePreviews()
         hideCommentRestore()
         keepUserAnnotationsLocal()
+        addAuthorColors()
     }
 }
