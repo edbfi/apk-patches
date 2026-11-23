@@ -145,6 +145,7 @@ val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
         val addAuthorColors = resolveAuthorColorEdits()
         val removeCloudBackupShortcut = resolveCloudBackupShortcutEdit()
         val removeUltraPreviewVisibility = resolveUltraPreviewVisibilityEdit()
+        val enableImageText = resolveImageTextEdits()
 
         listOf(ULTRA_XML, SETTINGS_XML, LINKS_XML).forEach { layout ->
             check(resources.paths("xml", layout).size == 1) { "Expected one $layout layout" }
@@ -177,5 +178,6 @@ val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
         hideCommentRestore()
         keepUserAnnotationsLocal()
         addAuthorColors()
+        enableImageText()
     }
 }
