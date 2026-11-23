@@ -199,10 +199,10 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
   Positive ML Kit translation checks require a device with Google Play services.
 - After changing Sync’s image text recognition, set `ANDROID_SERIAL` to the disposable device and run
   `bash reseam/tests/android-framework/image-text.sh reseam/build/reseam/unsigned/edbfi-patches.reseam`.
-  Open an image in the guest viewer and choose **Extract text** from its options. With Play services and the ML Kit Latin OCR
-  module, use an image with known text to check selection, **Copy text**, and return to the viewer. On a device without
-  Google Play services, check the availability message and return to the viewer. Check an HTTP image failure
-  with the result sheet open, then repeat with a delayed failure after dismissing and after rotating the sheet.
+  Open an image in the guest viewer and choose **Extract text**. With Play services and the ML Kit Latin OCR module,
+  use a known-text image to check selection, **Copy text**, and return to the viewer. Without Play services, check
+  the availability message and return to the viewer. Check an HTTP image failure with the sheet open, then repeat
+  with a delayed failure after dismissing the sheet and after rotating it.
   Confirm the old callback runs without showing an error or closing a replacement sheet.
 - After changing Sync’s Ultra settings, check the Settings entry summary and open Ultra as a guest. Check that the
   page describes local tag and paint storage and omits the cloud-backup shortcut and terms. Open **Backup now** from

@@ -156,8 +156,12 @@ internal fun PatchRuntime.resolveImageTextEdits(): () -> Unit {
         params(DRAWABLE)
         returns(Type.Void)
     }
-    check(bitmapTarget.classDef.superclassChain.any { it.descriptor == glideLoadFailed.owner })
-    check(bitmapTarget.classDef.method(glideLoadFailed.name, glideLoadFailed.proto) == null)
+    check(bitmapTarget.classDef.superclassChain.any { it.descriptor == glideLoadFailed.owner }) {
+        "Expected the OCR bitmap target to extend ${glideLoadFailed.owner}"
+    }
+    check(bitmapTarget.classDef.method(glideLoadFailed.name, glideLoadFailed.proto) == null) {
+        "OCR bitmap target already overrides ${glideLoadFailed.name}${glideLoadFailed.proto}"
+    }
 
     val recognitionFailure = method("Handle an ML Kit text recognition error") {
         strings(ERROR_EXTRACTING_TEXT)
@@ -185,7 +189,9 @@ internal fun PatchRuntime.resolveImageTextEdits(): () -> Unit {
         }
         argument(1) { string(ERROR_EXTRACTING_TEXT) }
     }.single().callee()
-    check(dismissWithError.owner == resultSheet.descriptor)
+    check(dismissWithError.owner == resultSheet.descriptor) {
+        "Expected the OCR error handler on ${resultSheet.descriptor}, found ${dismissWithError.owner}"
+    }
     val getPlayServices = playServices.methods("Get the Google Play services availability checker") {
         flags(AccessFlags.STATIC)
         params()

@@ -37,8 +37,9 @@ Open **Comment options → Local author color** to pick a color for the author. 
 Local author colors** to edit or remove saved colors. Both controls work while signed out. Colors are stored
 with the active profile and highlight that author’s name in comments.
 
-Open an image and choose **Image options → Extract text** while signed in or as a guest. Select part of the
-result or choose **Copy text** to copy it all and return to the image. Recognition runs on the device.
+Open **Image options → Extract text** to use Sync’s on-device recognizer as a guest. Its result sheet provides
+selection and **Copy text**. Device testing covered unavailable Play services and image load failures.
+Successful recognition and copying still need verification on a device with the Latin recognition module.
 
 ## Options
 
@@ -51,8 +52,8 @@ patched APK so the app can request albums and covers. This option has no preset 
 
 - **Other discussions can miss posts or show posts with different links.** It uses Reddit search.
 - **Some Tenor thumbnails stay blank.** Sync contacts the public GIF page, which must publish a preview image.
-- **Image text recognition needs Google Play services and its ML Kit Latin text recognition module.** If the
-  module is downloading, wait for it to finish and retry **Extract text**.
+- **Extract text can report that Google Play services is unavailable.** Sync relies on Play services to supply
+  the ML Kit Latin recognition module. If the module is downloading, wait for it to finish and retry.
 - **Website previews can show a missing image.** Sync checks up to two distinct public `og:image` URLs in page order within one request budget. It skips previews when a proxy is configured and discards a loaded image if previews are off or a proxy is configured when loading finishes.
 - **Tags and author colors do not sync or clear in bulk.** Sync used its retired cloud service for both actions.
   In the built-in managers, **Force refresh** does nothing and **Clear all** shows “TODO” where those actions appear.
