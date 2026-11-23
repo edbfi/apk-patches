@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.WeakHashMap;
 
+/** Play services and ML Kit calls use Sync 23033's R8 names. TranslationApi.kt checks them before patching. */
 public final class LocalTranslation implements View.OnAttachStateChangeListener, Runnable {
     private static final String MODEL_UNAVAILABLE = "Translation model unavailable. Connect to Wi-Fi, then try Translate again.";
     private static final String MODEL_PENDING = "Model download is still pending. Reopen Translate to try again.";
@@ -154,7 +155,6 @@ public final class LocalTranslation implements View.OnAttachStateChangeListener,
             return;
         }
 
-        // These calls use Sync 23033's R8 names, checked in TranslationApi.kt before patching.
         int availability = GoogleApiAvailability.q().i(view.getContext());
         if (availability != 0) {
             String message = switch (availability) {
