@@ -29,9 +29,8 @@ private const val FRAGMENT = "androidx.fragment.app.Fragment"
 private const val FRAGMENT_ACTIVITY = "androidx.fragment.app.FragmentActivity"
 private const val BOTTOM_SHEET = "com.google.android.material.bottomsheet.BottomSheetDialogFragment"
 private const val SELECTION_SHEET = "com.laurencedawson.reddit_sync.ui.fragment_dialogs.bottom.material_dialogs.base.AbstractSelectionDialogBottomSheet"
-// These types name the compile-only stubs used by the extension.
+// The extension subclasses this row through its compile-only stub.
 private const val SELECTION_ROW = "$SELECTION_SHEET\$h"
-private const val TEXT_BUILDER = "oc.c"
 private const val LOCAL_COLORS = "edbfi_local_author_colors"
 private const val MAP = "java.util.Map"
 
@@ -133,9 +132,10 @@ internal fun PatchRuntime.resolveAuthorColorEdits(): () -> Unit {
     }.single().callee()
     val icon = checkNotNull(resources.id("drawable", "format_paint")) { "Missing comment paint icon" }
 
+    val builderType = spannableTextBuilder.descriptor
     val formatter = methods("Format the author and metadata in a comment header") {
         strings("\u200e", "Sync dev", "[score hidden]")
-        params(TEXT_BUILDER, "android.widget.TextView", commentField.type, commentField.type, Type.Boolean)
+        params(builderType, "android.widget.TextView", commentField.type, commentField.type, Type.Boolean)
         returns(Type.Void)
         calls(readAuthor)
     }.single()
@@ -145,20 +145,20 @@ internal fun PatchRuntime.resolveAuthorColorEdits(): () -> Unit {
     val authorEnd = formatter.points("Resolve the comment author append range") {
         string("\u200e")
         then {
-            invokeVirtual { owner(TEXT_BUILDER); params("java.lang.CharSequence"); returns(Type.Void) }
+            invokeVirtual { owner(builderType); params("java.lang.CharSequence"); returns(Type.Void) }
             argument(1) { string("\u200e") }
         }
-        then { invokeVirtual { owner(TEXT_BUILDER); params(); returns(Type.Int) } }
+        then { invokeVirtual { owner(builderType); params(); returns(Type.Int) } }
         then { opcode(Opcode.MOVE_RESULT) }
         then { calls(readAuthor) }
         then { opcode(Opcode.MOVE_RESULT_OBJECT) }
-        then { invokeVirtual { owner(TEXT_BUILDER); params("java.lang.CharSequence"); returns(Type.Void) } }
-        then { invokeVirtual { owner(TEXT_BUILDER); params(); returns(Type.Int) } }
+        then { invokeVirtual { owner(builderType); params("java.lang.CharSequence"); returns(Type.Void) } }
+        then { invokeVirtual { owner(builderType); params(); returns(Type.Int) } }
         then { opcode(Opcode.MOVE_RESULT) }
     }.single()
     val nativePaint = formatter.points("Apply native saved paint to the comment author") {
         calls(paintConstructor)
-        then { invokeVirtual { owner(TEXT_BUILDER); params("java.lang.Object", Type.Int, Type.Int, Type.Int); returns(Type.Void) } }
+        then { invokeVirtual { owner(builderType); params("java.lang.Object", Type.Int, Type.Int, Type.Int); returns(Type.Void) } }
     }.single()
     val setSpan = nativePaint.callee()
     val join = nativePaint
@@ -269,8 +269,8 @@ internal fun XmlDocument.resolveAuthorColorSettingsEdit(): () -> Unit {
     check(root.tag == "PreferenceScreen" && findByAttribute(KEY, LOCAL_COLORS).isEmpty()) {
         "Unexpected local author color preference in $ULTRA_XML"
     }
-    val annotations = requirePreference(ULTRA_XML, "ultra_cloud_section", "PreferenceCategory")
-    check(annotations.parent?.tag == "PreferenceScreen") { "Expected an Ultra settings category in $ULTRA_XML" }
+    val subscriberSection = requirePreference(ULTRA_XML, SUBSCRIBER_SECTION, "PreferenceCategory")
+    check(subscriberSection.parent?.tag == "PreferenceScreen") { "Expected an Ultra settings category in $ULTRA_XML" }
 
     return {
         val manager = createElement(SYNC_PREFERENCE)
@@ -279,6 +279,6 @@ internal fun XmlDocument.resolveAuthorColorSettingsEdit(): () -> Unit {
         manager["android:summary"] = "Edit colors saved for comment authors on this device"
         manager["android:icon"] = "@drawable/format_paint"
         manager["android:persistent"] = "false"
-        root.insertBefore(manager, annotations)
+        root.insertBefore(manager, subscriberSection)
     }
 }

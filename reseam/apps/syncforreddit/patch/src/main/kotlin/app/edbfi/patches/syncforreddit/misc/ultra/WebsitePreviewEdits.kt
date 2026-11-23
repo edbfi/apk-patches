@@ -90,11 +90,13 @@ private val registerModels = methods("Register Sync's Glide models") {
     strings("Setting up glide with OkHTTP")
 }.single()
 
+internal val spannableTextBuilder = klass("Spannable text builder") {
+    sourceFile("SpannableTextViewStringBuilder.java")
+    hasInstanceField("java.lang.StringBuilder")
+}
+
 private val inlineLoader = methods("Bind comment link spans") {
-    inClass(klass("Spannable text builder") {
-        sourceFile("SpannableTextViewStringBuilder.java")
-        hasInstanceField("java.lang.StringBuilder")
-    })
+    inClass(spannableTextBuilder)
     returns(Type.Void)
     strings("EfficientImageSpan", "tenor.com")
 }.single()

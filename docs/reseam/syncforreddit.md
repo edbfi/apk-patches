@@ -49,6 +49,6 @@ patched APK so the app can request albums and covers. This option has no preset 
 - **Other discussions can miss posts or show posts with different links.** It uses Reddit search.
 - **Some Tenor thumbnails stay blank.** Sync contacts the public GIF page, which must publish a preview image.
 - **Website previews can show a missing image.** Sync checks up to two distinct public `og:image` URLs in page order within one request budget. It skips previews when a proxy is configured and discards a loaded image if previews are off or a proxy is configured when loading finishes.
-- **Tags and author colors are device-local.** In Sync’s built-in managers, **Force refresh** does nothing and
-  **Clear all** shows “TODO” where those actions appear. Remove entries individually. The tag manager hides
-  **Import local**, which uploaded tags.
+- **Tags and author colors do not sync or clear in bulk.** Sync used its retired cloud service for both actions.
+  In the built-in managers, **Force refresh** does nothing and **Clear all** shows “TODO” where those actions appear.
+  Remove entries individually. The tag manager hides **Import local**, which uploaded tags.
