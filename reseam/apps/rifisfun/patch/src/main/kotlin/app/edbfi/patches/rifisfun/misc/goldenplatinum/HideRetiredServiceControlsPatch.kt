@@ -131,7 +131,7 @@ private val loadCatalog = themeActions.points("start remote theme listing loader
 
 // AndroidX prefers the app's key attribute to android:key, regardless of its XML prefix.
 // Both shipped screens use framework keys exclusively. Check the compiled attribute ID table.
-private fun PatchRuntime.stockPreferenceScreen(name: String): XmlDocument {
+internal fun PatchRuntime.stockPreferenceScreen(name: String): XmlDocument {
     val path = resources.paths("xml", name).distinct().singleOrNull()
         ?: error("Expected one compiled XML layout for $name")
     val appKey = checkNotNull(resources.id("attr", "key")).toInt()
@@ -209,6 +209,7 @@ val goldenPlatinum = patch(RifPatchStrings.hideRetiredServiceControls) {
         searchAdapter.method
         check(searchActivity.classDef.superclass == "Lcom/andrewshu/android/reddit/theme/BaseThemedActivity;")
         check(searchActivity.classDef.method("onResume", "()V") == null)
+        val addAdDisplaySetting = prepareAdDisplaySetting()
 
         val checkbox = SETTINGS + "CheckIfEnabledCheckBoxPreference"
         stockPreferenceScreen("history_preferences").use { history ->
@@ -296,5 +297,6 @@ val goldenPlatinum = patch(RifPatchStrings.hideRetiredServiceControls) {
         // The per-subreddit unsubscribe action keeps its stock visibility.
         enableNotification.before { capture("visible").assign(bool(false)) }
         loadCatalog.before { returnVoid() }
+        addAdDisplaySetting()
     }
 }

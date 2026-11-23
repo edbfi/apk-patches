@@ -18,7 +18,7 @@
 | Fix markdown links | Shows markdown links that Reddit leaves as raw text, such as links to u/name, as links. | On |
 | Fix media links | Opens reddit.com/media links as the Reddit-hosted image they wrap. | On |
 | Fix YouTube player | Fixes the built-in YouTube player, which showed a black screen and error code 0. | On |
-| Hide retired service controls | Hides disabled Synccit and new-post notification settings, new subscriptions, and the remote theme catalog. | On |
+| Hide retired service controls | Adds an ads-only checkbox and hides disabled Synccit and new-post notification settings, new subscriptions, and the remote theme catalog. | On |
 | Keep typed text in view | Keeps the line being typed in view when writing a long reply. | On |
 
 ## Options
@@ -27,6 +27,13 @@
 
 `Imgur client ID` can override rif’s bundled Imgur registration with one you are authorized to use.
 Reseam stores the override in the patched APK so rif can request albums and covers.
+
+## Ad display
+
+With **Hide retired service controls** applied, use **Settings → General settings → Show ads** to
+control ad placements. Restart rif to refresh open screens. Leave **Ads & pro features** enabled to
+keep access to Cards, native albums and custom themes. **Disable ads** takes precedence over
+**Show ads** and also disables ad consent and SDK startup.
 
 ## Local themes
 

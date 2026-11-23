@@ -4,6 +4,12 @@ reseamStrings {
     objectName = "app.edbfi.patches.rifisfun.RifPatchStrings"
 }
 
+tasks.processResources {
+    from("src/main/strings/values/strings.xml") {
+        into("edbfi/rifisfun")
+    }
+}
+
 dependencies {
     add("reseamExtensions", project(":shared:imgur"))
     add("reseamExtensions", project(":shared:reddit-gallery"))
