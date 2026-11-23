@@ -24,8 +24,10 @@
 | Hide Gfycat link previews | Hides broken Gfycat link previews. | On |
 | Use /user/ endpoint | Requests user profiles from /user/ instead of /u/. | Off |
 
-The existing per-account `Website previews` setting controls loading in comments and when long-pressing a link.
-Sync’s usual eligibility and Ultra access checks apply. Loading a preview contacts the linked site and its image host.
+**Settings → Link handling → Website previews** controls Open Graph images in comments and in **Link options**
+when you long-press a link. It is on by default, uses Sync’s existing per-account setting and appears in Settings
+Search. Signed-out profiles can use it. Sync’s usual website URL exclusions apply. Loading contacts the linked
+site and its image host. Tap a failed image in **Link options** to retry.
 
 Sync’s comment restore action used a retired Pushshift integration. The patch also hides its
 **Restore removed comments** entry in Ultra settings and Settings Search.

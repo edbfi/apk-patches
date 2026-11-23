@@ -27,17 +27,35 @@ public final class WebsitePreviews {
     private WebsitePreviews() {}
 
     @Export
-    public static native boolean stockEligibility(String page);
+    private static native boolean stockEligibility(String page);
 
     @Export
-    public static boolean directAvailable(Context context) {
+    private static native boolean isYouTube(String page);
+
+    @Export
+    private static native boolean isWebsiteLink(String page);
+
+    @Export
+    private static native Context appContext();
+
+    @Export
+    private static native boolean previewsEnabled();
+
+    @Export
+    public static boolean eligible(String page) {
+        if (page == null) return false;
+        if (isYouTube(page)) return stockEligibility(page);
+        return previewsEnabled() && isWebsiteLink(page) && directAvailable(appContext());
+    }
+
+    private static boolean directAvailable(Context context) {
         ConnectivityManager connectivity = context == null ? null : context.getSystemService(ConnectivityManager.class);
         return connectivity != null && connectivity.getDefaultProxy() == null;
     }
 
     @Export
     public static void register(Context context, w2.e registry) {
-        register(context, registry, WebsitePreviews::stockEligibility, new PreviewClient());
+        register(context, registry, WebsitePreviews::eligible, new PreviewClient());
     }
 
     interface Eligibility {

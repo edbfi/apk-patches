@@ -194,18 +194,23 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
   For rif Settings Search, patch rif 5.6.22 with that same bundle and pass the resulting APK as the second argument.
 - After changing Sync’s Backup screen, test backup and restore on a disposable profile. Change a harmless setting
   after saving, restore the backup, and verify the saved value after a cold start.
-- After changing Sync’s Ultra settings, check the Settings entry summary, then open Ultra as a guest and with
-  a subscribed profile. Check that both describe local tag and paint storage and omit the cloud-backup shortcut
-  and terms. Open **Backup now** from Settings Search to verify local backup is still reachable.
-- After changing Sync’s website previews, use a disposable profile with Ultra access. Open an eligible comment link
-  with a public `og:image` inline and in Link options, then check the sheet’s retry with a missing image. Repeat with
-  Website previews off and with a proxy configured. A guest profile can verify the access gate and link actions.
+- For Sync’s locally implemented features, use a fresh, unsubscribed install on a disposable device as the primary
+  check, through the app’s normal UI. Archived, genuinely subscribed installs are optional comparison controls.
+  Positive ML Kit translation and image text recognition checks require a device with Google Play services.
+- After changing Sync’s Ultra settings, check the Settings entry summary and open Ultra as a guest. Check that the
+  page describes local tag and paint storage and omits the cloud-backup shortcut and terms. Open **Backup now** from
+  Settings Search to verify local backup is still reachable.
+- After changing Sync’s website previews, open an eligible comment link with a public `og:image` inline and in
+  Link options on a fresh guest install. Check retry after an image fails. Use **Settings → Link handling → Website
+  previews** to turn them off and back on. Verify that Settings Search opens that switch. With a proxy configured,
+  check that previews are suppressed and the ordinary link actions still work.
 - After changing Sync’s retired comment restore action, check discussion menus, comment-card long presses, Ultra
   settings and Settings Search with ordinary, `[removed]` and `[deleted]` fixture comments. Cover the guest flow.
   With synthetic Ultra eligibility and the restore flag on, use stock as the discussion control and a patch-off
   build as the native card control.
 - After changing Sync’s tags or paints, add, edit and remove a guest tag. Cold-start Sync after each change and
-  check the author in a discussion. With Ultra access, check paint color persistence and both management menus.
+  check the author in a discussion. Exercise both management menus and verify paint color persistence when the
+  paint UI is available. The existing paint controls still depend on native Ultra access.
   **Force refresh** does nothing where shown, **Clear all** preserves entries and shows “TODO”, and the tag menu
   hides **Import local**.
 - Reseam's release job signs the bundle with its own key and attaches `edbfi-patches.reseam` and the Reseam source

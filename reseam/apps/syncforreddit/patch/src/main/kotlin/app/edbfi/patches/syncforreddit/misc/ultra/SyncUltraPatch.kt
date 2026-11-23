@@ -143,23 +143,29 @@ val syncUltra = patch(SyncPatchStrings.fixWebsitePreviewsAndBackup) {
         val hideCommentRestore = resolveCommentRestoreEdit()
         val keepUserAnnotationsLocal = resolveUserAnnotationEdits()
         val removeCloudBackupShortcut = resolveCloudBackupShortcutEdit()
+        val removeUltraPreviewVisibility = resolveUltraPreviewVisibilityEdit()
 
-        listOf(ULTRA_XML, SETTINGS_XML).forEach { layout ->
+        listOf(ULTRA_XML, SETTINGS_XML, LINKS_XML).forEach { layout ->
             check(resources.paths("xml", layout).size == 1) { "Expected one $layout layout" }
         }
         resources.xml("xml", BACKUP_XML).use { backup ->
             resources.xml("xml", ULTRA_XML).use { ultra ->
                 resources.xml("xml", SETTINGS_XML).use { settings ->
-                    val removeCloudBackup = backup.resolveBackupLayoutEdits()
-                    val updateUltraSettings = ultra.resolveUltraSettingsLayoutEdits()
-                    val updateUltraEntry = settings.resolveUltraEntryEdit()
-                    removeCloudBackup()
-                    updateUltraSettings()
-                    updateUltraEntry()
+                    resources.xml("xml", LINKS_XML).use { links ->
+                        val removeCloudBackup = backup.resolveBackupLayoutEdits()
+                        val updateUltraSettings = ultra.resolveUltraSettingsLayoutEdits()
+                        val updateUltraEntry = settings.resolveUltraEntryEdit()
+                        val moveWebsitePreviewSettings = ultra.resolveWebsitePreviewSettingsEdit(links)
+                        moveWebsitePreviewSettings()
+                        removeCloudBackup()
+                        updateUltraSettings()
+                        updateUltraEntry()
+                    }
                 }
             }
         }
         removeCloudBackupShortcut()
+        removeUltraPreviewVisibility()
         cloudSetup.before { returnVoid() }
         // The backup status event also calls this method after the screen has been created.
         refreshCloudBackup.alwaysReturn()

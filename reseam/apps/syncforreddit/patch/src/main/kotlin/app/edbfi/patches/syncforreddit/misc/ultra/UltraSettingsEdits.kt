@@ -128,5 +128,5 @@ internal fun XmlDocument.resolveUltraEntryEdit(): () -> Unit {
             parent.parent?.tag == "PreferenceScreen"
     ) { "Unexpected Sync Ultra entry in $SETTINGS_XML" }
 
-    return { entry[SUMMARY] = "Website previews, translation & more" }
+    return { entry[SUMMARY] = "Translation & more" }
 }
