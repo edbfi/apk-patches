@@ -59,9 +59,9 @@ patched APK so the app can request albums and covers. This option has no preset 
 - **Some Tenor thumbnails stay blank.** Sync contacts the public GIF page, which must publish a preview image.
 - **Extract text can report that Google Play services is unavailable.** Sync relies on Play services to supply
   the ML Kit Latin recognition module. If the module is downloading, wait for it to finish and retry.
-- **Automatic translation language detection needs Google Play services and its ML Kit language identification
-  module.** First use for each source language can require a translation model download over Wi-Fi. Automatic
-  language detection and a successful **Translate all** run still need device verification.
+- **Translate can report that language detection or a translation model is unavailable.** Automatic detection
+  uses the ML Kit language identification module from Google Play services. On first use, Sync downloads the
+  source language’s translation model over Wi-Fi. Once the download finishes, reopen **Translate** to retry.
 - **Website previews can show a missing image.** Sync checks up to two distinct public `og:image` URLs in page order within one request budget. It skips previews when a proxy is configured and discards a loaded image if previews are off or a proxy is configured when loading finishes.
 - **Tags and author colors do not sync or clear in bulk.** Sync used its retired cloud service for both actions.
   In the built-in managers, **Force refresh** does nothing and **Clear all** shows “TODO” where those actions appear.

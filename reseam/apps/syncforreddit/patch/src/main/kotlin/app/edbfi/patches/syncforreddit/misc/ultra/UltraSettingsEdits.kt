@@ -15,12 +15,13 @@ internal const val SETTINGS_XML = "cat_root"
 private const val CLOUD_SHORTCUT = "ultra_cloud"
 internal const val SUBSCRIBER_SECTION = "ultra_cloud_section"
 internal const val GUEST_SECTION = "ultra_perks"
+internal const val TRANSLATE = "ultra_translate"
 private const val SUMMARY = "android:summary"
 private const val CATEGORY_TITLE = "app:categoryTitle"
 private const val INFO_TITLE = "app:categoryInfoTitle"
 
 internal val ultraSettings = methods("Set up the Ultra settings page") {
-    strings("ultra_removed", "ultra_translate", "ultra_manage_preference")
+    strings("ultra_removed", TRANSLATE, "ultra_manage_preference")
     flags(AccessFlags.PRIVATE)
     params()
     returns(Type.Void)

@@ -20,7 +20,6 @@ import app.reseam.patch.redirectTo
 import app.reseam.patch.replace
 import app.reseam.patch.skipWhen
 
-private const val TRANSLATE = "ultra_translate"
 private const val VIEW = "android.view.View"
 private const val FRAGMENT = "androidx.fragment.app.Fragment"
 private const val CONTENT_VALUES_ARRAY = "[Landroid/content/ContentValues;"
