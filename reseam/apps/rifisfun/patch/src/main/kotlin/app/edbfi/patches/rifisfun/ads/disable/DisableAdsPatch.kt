@@ -23,12 +23,12 @@ private val adHelpers = klass(MAIN_ACTIVITY).method("<clinit>") {
     calls { owner("java.lang.Class"); name("newInstance") }
 }
 
-private val transition = klass("rif screen transition enum") {
+internal val screenTransition = klass("rif screen transition enum") {
     enumConstants("FROM_THREADS_GO_HOME", "FROM_BROWSER_GO_FULLSCREEN")
 }
 
 private val allowBanner = method("rif banner ad eligibility") {
-    inClass(transition)
+    inClass(screenTransition)
     params(MAIN_ACTIVITY)
     returns(Type.Boolean)
     flags(AccessFlags.PRIVATE)

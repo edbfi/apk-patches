@@ -153,8 +153,7 @@ internal fun PatchRuntime.stockPreferenceScreen(name: String): XmlDocument {
     error("Missing XML resource map in $name")
 }
 
-// Only these controls may be hidden. Validate their type and grouping before editing the APK.
-private fun XmlDocument.requirePreference(key: String, tag: String) =
+internal fun XmlDocument.requirePreference(key: String, tag: String) =
     findByAttribute("android:key", key).singleOrNull()?.also {
         check(it.tag == tag) { "Expected $tag for preference $key, found ${it.tag}" }
     } ?: error("Expected exactly one preference with android:key=$key")

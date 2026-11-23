@@ -3,6 +3,7 @@
 package app.edbfi.patches.rifisfun.misc.goldenplatinum
 
 import app.edbfi.patches.rifisfun.RifPatchStrings
+import app.edbfi.patches.rifisfun.ads.disable.screenTransition
 import app.reseam.patch.CodeScope
 import app.reseam.patch.PatchRuntime
 import app.reseam.patch.Type
@@ -16,6 +17,7 @@ import org.w3c.dom.Element
 private const val RIF = "com.andrewshu.android.reddit."
 private const val PREFERENCE_SCREEN = "general_preferences"
 private const val SHOW_ADS = "edbfi_show_ads"
+// rif 5.6.22 ships RecyclerView.Adapter under this R8 name in the album helper signature.
 private const val RECYCLER_ADAPTER = "androidx.recyclerview.widget.RecyclerView\$h"
 
 private val applicationContext = method("read rif application context") {
@@ -26,7 +28,8 @@ private val applicationContext = method("read rif application context") {
 }
 
 private val insertFeedAd = method("allow an ad row in a thread feed") {
-    // Disable ads can replace this override's body before this patch runs.
+    // Disable ads erases the identifying theme calls. Two protected ()Z overrides remain,
+    // so pin the R8 class and override names from rif 5.6.22.
     inClass(klass("e5.e0"))
     name("d0")
     flags(AccessFlags.PROTECTED)
@@ -35,8 +38,9 @@ private val insertFeedAd = method("allow an ad row in a thread feed") {
 }
 
 private val showBanner = method("allow a banner below the thread list") {
-    // Both pane layouts call this gate. Match its descriptor even if its body was replaced.
-    inClass(klass("u1.b"))
+    // Three private methods on this enum accept MainActivity and return Boolean. Disable ads
+    // erases the theme call that distinguishes the gate, so retain its rif 5.6.22 R8 name.
+    inClass(screenTransition)
     name("b")
     flags(AccessFlags.PRIVATE)
     params(RIF + "MainActivity")
@@ -57,6 +61,7 @@ private val wrapAlbumAdapter = method("add ad rows to an image album") {
     returns(RECYCLER_ADAPTER)
 }
 
+// RifBaseSettingsFragment.F4() selects the "settings" preference file in rif 5.6.22.
 private fun CodeScope.showAds() =
     call(applicationContext)
         .callVirtual("android.content.Context", "getSharedPreferences",
@@ -71,9 +76,13 @@ internal fun PatchRuntime.prepareAdDisplaySetting(): () -> Unit {
     loadFeedAds.method
     wrapAlbumAdapter.method
     stockPreferenceScreen(PREFERENCE_SCREEN).use { screen ->
-        check(screen.root.tag == "PreferenceScreen")
-        check(screen.findByAttribute("android:key", "ADS_ENABLED").single().tag == "CheckBoxPreference")
-        check(screen.findByAttribute("android:key", SHOW_ADS).isEmpty())
+        check(screen.root.tag == "PreferenceScreen") {
+            "Expected PreferenceScreen at the root of $PREFERENCE_SCREEN, found ${screen.root.tag}"
+        }
+        screen.requirePreference("ADS_ENABLED", "CheckBoxPreference")
+        check(screen.findByAttribute("android:key", SHOW_ADS).isEmpty()) {
+            "Unexpected existing preference with android:key=$SHOW_ADS in $PREFERENCE_SCREEN"
+        }
     }
     val strings = checkNotNull(RifPatchStrings::class.java.getResourceAsStream("/edbfi/rifisfun/strings.xml"))
         .use { DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(it).getElementsByTagName("string") }
