@@ -5,7 +5,12 @@ reseamStrings {
 }
 
 dependencies {
+    add("reseamExtensions", project(":shared:reddit-oauth"))
     add("reseamExtensions", project(":shared:imgur"))
     add("reseamExtensions", project(":shared:reddit-gallery"))
     add("reseamExtensions", project(":shared:reddit-share"))
+}
+
+kotlin.sourceSets.named("main") {
+    kotlin.srcDir(rootProject.file("shared/reddit-oauth/src/patch/kotlin"))
 }

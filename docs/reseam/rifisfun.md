@@ -20,6 +20,7 @@
 | Fix YouTube player | Fixes the built-in YouTube player, which showed a black screen and error code 0. | On |
 | Hide retired service controls | Adds an ads-only checkbox and hides disabled Synccit and new-post notification settings, new subscriptions, and the remote theme catalog. | On |
 | Keep typed text in view | Keeps the line being typed in view when writing a long reply. | On |
+| Spoof client | Uses your own Reddit OAuth registration when all three options are set. Leaves the app’s configuration in place when they are blank. | On |
 
 ## Options
 
@@ -27,6 +28,19 @@
 
 `Imgur client ID` can override rif’s bundled Imgur registration with one you are authorized to use.
 Reseam stores the override in the patched APK so rif can request albums and covers.
+
+### Spoof client
+
+Set all three patch-time options together for your own Reddit installed-app registration.
+
+- `OAuth client ID` is the public ID from your registration.
+- `Redirect URI` is the exact registered HTTP(S) or app callback URI. Use a URI without a fragment.
+- `User-Agent` describes your app and identifies its operator.
+
+Leave all three blank to keep the app’s shipped OAuth configuration. If you change registrations, add your
+Reddit accounts again so they can obtain tokens for the new client. A cached guest token can stay in use
+until it expires. The patch preserves app settings.
+Live Reddit sign-in and browsing with a custom registration still need verification.
 
 ## Ad display
 

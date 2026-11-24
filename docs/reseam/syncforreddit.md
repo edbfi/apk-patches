@@ -22,6 +22,7 @@
 | Fix View more comments | Fixes “View more” not loading further comments. | On |
 | Fix website previews and hide retired cloud backup | Loads eligible website previews directly in comments and link options. Hides retired cloud backup controls and the Pushshift comment restore action. Keeps local backup and restore available. Stores user tags and lets guests color comment authors on the device. Lets guests extract selectable text from images on the device. Lets guests translate comments and text posts on the device. | On |
 | Hide Gfycat link previews | Hides broken Gfycat link previews. | On |
+| Spoof client | Uses your own Reddit OAuth registration when all three options are set. Leaves the app’s configuration in place when they are blank. | On |
 | Use /user/ endpoint | Requests user profiles from /user/ instead of /u/. | Off |
 
 **Settings → Link handling → Website previews** controls Open Graph images in comments and in **Link options**
@@ -52,6 +53,19 @@ original text. If Sync cannot identify the language of a single item, choose its
 
 `Imgur client ID` identifies an Imgur application you are authorized to use. Reseam stores the ID in the
 patched APK so the app can request albums and covers. This option has no preset ID.
+
+### Spoof client
+
+Set all three patch-time options together for your own Reddit installed-app registration.
+
+- `OAuth client ID` is the public ID from your registration.
+- `Redirect URI` is the exact registered HTTP(S) or app callback URI. Use a URI without a fragment.
+- `User-Agent` describes your app and identifies its operator.
+
+Leave all three blank to keep the app’s shipped OAuth configuration. If you change registrations, add your
+Reddit accounts again so they can obtain tokens for the new client. A cached guest token can stay in use
+until it expires. The patch preserves app settings.
+Live Reddit sign-in and browsing with a custom registration still need verification.
 
 ## Known issues
 

@@ -29,4 +29,12 @@
     <string name="fix_galleries_description">Restores loading Reddit galleries from the post listing.</string>
     <string name="fix_website_previews_and_backup">Fix website previews and hide retired cloud backup</string>
     <string name="fix_website_previews_and_backup_description">Loads eligible website previews directly in comments and link options. Hides retired cloud backup controls and the Pushshift comment restore action. Keeps local backup and restore available. Stores user tags and lets guests color comment authors on the device. Lets guests extract selectable text from images on the device. Lets guests translate comments and text posts on the device.</string>
+    <string name="spoof_client">Spoof client</string>
+    <string name="spoof_client_description">Uses your own Reddit OAuth registration when all three options are set. Leaves the app’s configuration in place when they are blank.</string>
+    <string name="oauth_client_id">OAuth client ID</string>
+    <string name="oauth_client_id_description">The public client ID from your own Reddit installed-app registration.</string>
+    <string name="oauth_redirect_uri">Redirect URI</string>
+    <string name="oauth_redirect_uri_description">The callback URI registered for that Reddit client.</string>
+    <string name="oauth_user_agent">User-Agent</string>
+    <string name="oauth_user_agent_description">A descriptive User-Agent that identifies your app and its operator.</string>
 </resources>
