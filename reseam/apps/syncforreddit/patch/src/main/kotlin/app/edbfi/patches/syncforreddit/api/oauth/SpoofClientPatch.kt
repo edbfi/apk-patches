@@ -66,6 +66,14 @@ private val webCallback = method("Sync login WebView callback") {
     strings("state", "code", "error")
 }
 
+private val callbackEndpoint = webCallback.points("Sync callback endpoint check") {
+    calls(callback)
+}.single().next { resultOf(Type.Boolean) }.captureAs("atEndpoint", Type.Boolean)
+
+private val callbackState = webCallback.points("Sync native OAuth state comparison") {
+    invokeStatic { owner(loginHelper.descriptor); params("android.content.Context", Type.String); returns(Type.Boolean) }
+}.single().next { resultOf(Type.Boolean) }.captureAs("validState", Type.Boolean)
+
 private val authHeader = method("Sync Reddit token Authorization header") {
     inClass(loginHelper)
     flags(AccessFlags.STATIC)
@@ -147,7 +155,8 @@ val spoofClient = patch(SyncPatchStrings.spoofClient) {
         }
         authHeader.method
         redirect.method
-        webCallback.method
+        callbackEndpoint.instruction
+        callbackState.instruction
         authorizeRedirect.instruction
         exchangeCode.instruction
         val headers = tokenHeaders.all
@@ -173,7 +182,15 @@ val spoofClient = patch(SyncPatchStrings.spoofClient) {
             capture("code").assign(encoded)
         }
         redirect.alwaysReturn(config.redirect)
-        callback.replace { returnValue(OAuthRedirect.matches(param(0), string(config.redirect))) }
+        callback.replace { returnValue(OAuthRedirect.matchesEndpoint(param(0), string(config.redirect))) }
+        callbackEndpoint.after {
+            whenTrue(capture("atEndpoint")) {
+                whenFalse(OAuthRedirect.validResponse(param(1), string(config.redirect))) { returnTrue() }
+            }
+        }
+        callbackState.after {
+            whenFalse(capture("validState")) { returnTrue() }
+        }
         authHeader.alwaysReturn(config.basicAuthorization)
         userAgent.alwaysReturn(config.userAgent)
         webSettings.after {

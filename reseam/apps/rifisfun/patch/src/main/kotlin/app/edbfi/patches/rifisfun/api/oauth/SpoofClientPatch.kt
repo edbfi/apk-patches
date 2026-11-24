@@ -9,7 +9,6 @@ import app.edbfi.patches.shared.oauth.OAuthConfig
 import app.reseam.patch.MethodTarget
 import app.reseam.patch.Type
 import app.reseam.patch.after
-import app.reseam.patch.alwaysReturn
 import app.reseam.patch.before
 import app.reseam.patch.dex.AccessFlags
 import app.reseam.patch.dex.methodRef
@@ -60,6 +59,8 @@ private val callbackPredicate = webCallback.points("rif WebView callback prefix 
     argument(1) { string(STOCK_REDIRECT) }
 }.single()
 
+private val callbackEndpoint = callbackPredicate.next { resultOf(Type.Boolean) }.captureAs("atEndpoint", Type.Boolean)
+
 private val stateCheckCall = webCallback.points("rif native OAuth state comparison") {
     invokeVirtual { returns(Type.Boolean); params(Type.String) }
     where { methodRef?.definingClass == authorize.owner }
@@ -103,9 +104,13 @@ private val webUserAgent = method("rif OAuth WebView settings") {
     calls { owner("android.webkit.WebSettings"); name("setUserAgentString"); params(Type.String) }
 }
 
-private val userAgent = webUserAgent.points("rif shared Reddit User-Agent provider") {
+private val userAgent = webUserAgent.points("rif stock User-Agent provider") {
     invokeStatic { returns(Type.String); params() }
 }.single().callee()
+
+private val loginUserAgentHeader = webUserAgent.points("rif login WebView User-Agent") {
+    invokeVirtual { owner("android.webkit.WebSettings"); name("setUserAgentString"); params(Type.String) }
+}.single().captureArgumentAs("agent", 1)
 
 private val requestUserAgent = methods("rif Reddit request User-Agent header") {
     params(authHeader.parameterTypes[1])
@@ -114,6 +119,27 @@ private val requestUserAgent = methods("rif Reddit request User-Agent header") {
     calls(userAgent)
 }.single {
     authHeader.method.classDef.superclassChain.any { it.descriptor == owner }
+}
+
+private val requestUserAgentHeader = requestUserAgent.points("rif Reddit request User-Agent setter") {
+    invokeVirtual { owner(requestUserAgent.parameterTypes[0]); params(Type.String, Type.String) }
+    argument(1) { string("User-Agent") }
+}.single().captureArgumentAs("agent", 2)
+
+private val requestUrl = method("rif HTTP request builder URL") {
+    inClass(klass(requestUserAgent.parameterTypes[0]))
+    flags(AccessFlags.PUBLIC or AccessFlags.FINAL)
+    params()
+    // The APK's OkHttp HttpUrl type has an obfuscated name.
+    returns("okhttp3.x")
+}
+
+private val isRedditUrl = method("rif Reddit request URL classifier") {
+    inClass(klass("rif Reddit host classifier") { strings("api.reddit.com", "oauth.reddit.com", "redd.it") })
+    flags(AccessFlags.STATIC)
+    params(URI)
+    returns(Type.Boolean)
+    calls { owner(URI); name("getHost"); params() }
 }
 
 val spoofClient = patch(RifPatchStrings.spoofClient) {
@@ -136,6 +162,7 @@ val spoofClient = patch(RifPatchStrings.spoofClient) {
         exchangeRedirect.instruction
         callbackRedirect.instruction
         callbackPredicate.instruction
+        callbackEndpoint.instruction
         stateCheck.method
         loginSession.method
         check(authHeader.owner == tokenClassInit.owner) { "Unexpected rif OAuth token header provider." }
@@ -151,17 +178,20 @@ val spoofClient = patch(RifPatchStrings.spoofClient) {
         ) {
             "Expected the rif authorization code, guest and refresh forms."
         }
-        userAgent.method
-        requestUserAgent.method
+        loginUserAgentHeader.instruction
+        requestUserAgentHeader.instruction
+        requestUrl.method
+        isRedditUrl.method
 
         authorizeClient.before { capture("clientId").assign(string(config.clientId)) }
         for (point in listOf(authorizeRedirect, exchangeRedirect, callbackRedirect)) {
             point.after { capture("redirect").assign(string(config.redirect)) }
         }
-        callbackPredicate.redirectTo(OAuthRedirect.matches)
-        webCallback.before {
+        callbackPredicate.redirectTo(OAuthRedirect.matchesEndpoint)
+        callbackEndpoint.after {
             // The original success path also checks state. Apply the same check to OAuth errors.
-            whenTrue(OAuthRedirect.matches(param(1), string(config.redirect))) {
+            whenTrue(capture("atEndpoint")) {
+                whenFalse(OAuthRedirect.validResponse(param(1), string(config.redirect))) { returnTrue() }
                 val uri = callStatic(URI, "parse", "(Ljava/lang/String;)Landroid/net/Uri;", param(1))
                 val state = uri.callVirtual(URI, "getQueryParameter", "(Ljava/lang/String;)Ljava/lang/String;",
                     string("state"))
@@ -172,6 +202,11 @@ val spoofClient = patch(RifPatchStrings.spoofClient) {
             param(1).call(authHeaderSetter, string("Authorization"), string(config.basicAuthorization))
             returnVoid()
         }
-        userAgent.alwaysReturn(config.userAgent)
+        loginUserAgentHeader.before { capture("agent").assign(string(config.userAgent)) }
+        requestUserAgentHeader.before {
+            val url = param(0).call(requestUrl).callVirtual("java.lang.Object", "toString", "()Ljava/lang/String;")
+            val uri = callStatic(URI, "parse", "(Ljava/lang/String;)Landroid/net/Uri;", url)
+            whenTrue(call(isRedditUrl, uri)) { capture("agent").assign(string(config.userAgent)) }
+        }
     }
 }
