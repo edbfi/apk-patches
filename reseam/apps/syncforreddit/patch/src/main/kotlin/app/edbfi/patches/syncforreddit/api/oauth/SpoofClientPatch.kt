@@ -19,6 +19,7 @@ import app.reseam.patch.patch
 import app.reseam.patch.points
 import app.reseam.patch.replace
 
+// Send token POSTs directly to www because following the stock host's 301 redirect can turn them into GETs.
 private const val STOCK_API = "https://ssl.reddit.com/api/v1"
 private const val REDDIT_API = "https://www.reddit.com/api/v1"
 private const val AUTHORIZE = "/authorize.compact?"
