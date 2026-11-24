@@ -10,9 +10,11 @@ import app.reseam.patch.MethodTarget
 import app.reseam.patch.Type
 import app.reseam.patch.after
 import app.reseam.patch.before
+import app.reseam.patch.classTarget
 import app.reseam.patch.dex.AccessFlags
 import app.reseam.patch.dex.methodRef
 import app.reseam.patch.dex.stringValue
+import app.reseam.patch.field
 import app.reseam.patch.klass
 import app.reseam.patch.method
 import app.reseam.patch.methods
@@ -20,6 +22,7 @@ import app.reseam.patch.patch
 import app.reseam.patch.points
 import app.reseam.patch.redirectTo
 import app.reseam.patch.replace
+import app.reseam.patch.types.NewField
 
 private const val STOCK_REDIRECT = "redditisfun://auth"
 private const val LOGIN = "com.andrewshu.android.reddit.login.oauth2.OAuth2Activity"
@@ -124,10 +127,48 @@ private val requestUserAgent = methods("rif Reddit request User-Agent header") {
 private val requestUserAgentHeader = requestUserAgent.points("rif Reddit request User-Agent setter") {
     invokeVirtual { owner(requestUserAgent.parameterTypes[0]); params(Type.String, Type.String) }
     argument(1) { string("User-Agent") }
-}.single().captureArgumentAs("agent", 2)
+}.single()
+
+private val setHeader = requestUserAgentHeader.callee()
+private val requestBuilder = classTarget("rif OkHttp request builder") {
+    klass(requestUserAgent.parameterTypes[0]).classDef
+}
+
+private val requestInit = method("rif OkHttp request constructor from builder") {
+    name("<init>")
+    params(requestBuilder.descriptor)
+    returns(Type.Void)
+    strings("url == null")
+}
+
+private val requestClass = classTarget("rif OkHttp request") { klass(requestInit.owner).classDef }
+
+private val buildRequest = method("rif OkHttp request builder build") {
+    inClass(requestBuilder)
+    params()
+    returns(requestClass.descriptor)
+    calls(requestInit)
+}
+
+private val copyRequest = method("rif OkHttp request builder constructor from request") {
+    inClass(requestBuilder)
+    name("<init>")
+    params(requestClass.descriptor)
+    returns(Type.Void)
+}
+
+private val bridgeRequest = method("rif OkHttp bridge interceptor") {
+    strings("User-Agent", "Accept-Encoding", "Content-Length", "Keep-Alive")
+    calls(buildRequest)
+    calls(setHeader)
+}.points("rif OkHttp bridge builds the wire request") {
+    calls(buildRequest)
+}.single().captureArgumentAs("builder", 0)
+
+private const val REDDIT_AGENT = "edbfiRedditUserAgent"
 
 private val requestUrl = method("rif HTTP request builder URL") {
-    inClass(klass(requestUserAgent.parameterTypes[0]))
+    inClass(requestBuilder)
     flags(AccessFlags.PUBLIC or AccessFlags.FINAL)
     params()
     // The APK's OkHttp HttpUrl type has an obfuscated name.
@@ -180,8 +221,15 @@ val spoofClient = patch(RifPatchStrings.spoofClient) {
         }
         loginUserAgentHeader.instruction
         requestUserAgentHeader.instruction
+        requestInit.method
+        copyRequest.method
+        bridgeRequest.instruction
         requestUrl.method
         isRedditUrl.method
+        val markedBuilder = field(requestBuilder.descriptor, REDDIT_AGENT, Type.Boolean)
+        val markedRequest = field(requestClass.descriptor, REDDIT_AGENT, Type.Boolean)
+        val markedClasses = listOf(requestBuilder.classDef, requestClass.classDef)
+        check(markedClasses.all { it.field(REDDIT_AGENT) == null }) { "rif Reddit request scope field already exists." }
 
         authorizeClient.before { capture("clientId").assign(string(config.clientId)) }
         for (point in listOf(authorizeRedirect, exchangeRedirect, callbackRedirect)) {
@@ -203,10 +251,22 @@ val spoofClient = patch(RifPatchStrings.spoofClient) {
             returnVoid()
         }
         loginUserAgentHeader.before { capture("agent").assign(string(config.userAgent)) }
-        requestUserAgentHeader.before {
-            val url = param(0).call(requestUrl).callVirtual("java.lang.Object", "toString", "()Ljava/lang/String;")
-            val uri = callStatic(URI, "parse", "(Ljava/lang/String;)Landroid/net/Uri;", url)
-            whenTrue(call(isRedditUrl, uri)) { capture("agent").assign(string(config.userAgent)) }
+        val flags = (AccessFlags.PUBLIC or AccessFlags.SYNTHETIC).toUInt()
+        markedClasses.forEach { it.addField(NewField(REDDIT_AGENT, Type.Boolean, flags, null)) }
+        requestUserAgent.after { param(0).set(markedBuilder, bool(true)) }
+        requestInit.after { thisObject.set(markedRequest, param(0).field(markedBuilder)) }
+        copyRequest.after { thisObject.set(markedBuilder, param(0).field(markedRequest)) }
+        bridgeRequest.before {
+            // RetryAndFollowUpInterceptor copies the original request, including its stock header.
+            // Set the override on the bridge's copy for the current destination only.
+            val builder = capture("builder")
+            whenTrue(builder.field(markedBuilder)) {
+                val url = builder.call(requestUrl).callVirtual("java.lang.Object", "toString", "()Ljava/lang/String;")
+                val uri = callStatic(URI, "parse", "(Ljava/lang/String;)Landroid/net/Uri;", url)
+                whenTrue(call(isRedditUrl, uri)) {
+                    builder.call(setHeader, string("User-Agent"), string(config.userAgent))
+                }
+            }
         }
     }
 }
