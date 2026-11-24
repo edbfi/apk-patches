@@ -25,6 +25,8 @@
     <string name="imgur_client_id_description">The client ID of an Imgur application you are authorized to use.</string>
     <string name="fix_imgur">Fix Imgur</string>
     <string name="fix_imgur_description">Loads Imgur albums and covers and uploads images through the Imgur API.</string>
+    <string name="fix_redgifs">Fix Redgifs</string>
+    <string name="fix_redgifs_description">Opens RedGIFs clips in the public embedded player and uses available Reddit video previews for Enhanced autoplay.</string>
     <string name="fix_galleries">Fix galleries</string>
     <string name="fix_galleries_description">Restores loading Reddit galleries from the post listing.</string>
     <string name="fix_website_previews_and_backup">Fix website previews and hide retired cloud backup</string>

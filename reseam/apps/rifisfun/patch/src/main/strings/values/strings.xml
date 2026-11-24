@@ -15,6 +15,8 @@
     <string name="fix_markdown_links_description">Shows markdown links that Reddit leaves as raw text, such as links to u/name, as links.</string>
     <string name="fix_media_links">Fix media links</string>
     <string name="fix_media_links_description">Opens reddit.com/media links as the Reddit-hosted image they wrap.</string>
+    <string name="fix_redgifs">Fix Redgifs</string>
+    <string name="fix_redgifs_description">Opens RedGIFs video links in the public embedded player inside rif’s browser.</string>
     <string name="fix_youtube_player">Fix YouTube player</string>
     <string name="fix_youtube_player_description">Fixes the built-in YouTube player, which showed a black screen and error code 0.</string>
     <string name="keep_typed_text_in_view">Keep typed text in view</string>

@@ -17,6 +17,7 @@
 | Fix Imgur | Loads Imgur albums and covers and uploads images through the Imgur API. | Off |
 | Fix Other discussions | Fixes “Other discussions” failing to load, by searching Reddit for the link instead. | On |
 | Fix post thumbnails | Fixes post thumbnails not loading. | On |
+| Fix Redgifs | Opens RedGIFs clips in the public embedded player and uses available Reddit video previews for Enhanced autoplay. | On |
 | Fix Tenor previews | Loads missing Tenor thumbnails from public GIF pages. | On |
 | Fix video downloads | Fixes downloaded Reddit videos having only audio. | On |
 | Fix View more comments | Fixes “View more” not loading further comments. | On |
@@ -24,6 +25,10 @@
 | Hide Gfycat link previews | Hides broken Gfycat link previews. | On |
 | Spoof client | Uses your own Reddit OAuth registration when all three options are set. Leaves the app’s configuration in place when they are blank. | On |
 | Use /user/ endpoint | Requests user profiles from /user/ instead of /u/. | Off |
+
+With RedGIFs link handling enabled, tapping a RedGIFs watch link, embed link or RedGIFs media file opens the
+public player in the browser selected in Sync. Turning RedGIFs link handling off opens the original link.
+Enhanced autoplay can play a video preview supplied by Reddit. Without one, tap the post to open the player.
 
 **Settings → Link handling → Website previews** controls Open Graph images in comments and in **Link options**
 when you long-press a link. It is on by default, uses Sync’s existing per-account setting and appears in Settings
@@ -69,6 +74,7 @@ Live Reddit sign-in and browsing with a custom registration still need verificat
 
 ## Known issues
 
+- **RedGIFs image peek and native downloads can fail.** Both still use Sync’s old RedGIFs API lookup.
 - **Other discussions can miss posts or show posts with different links.** It uses Reddit search.
 - **Some Tenor thumbnails stay blank.** Sync contacts the public GIF page, which must publish a preview image.
 - **Extract text can report that Google Play services is unavailable.** Sync relies on Play services to supply

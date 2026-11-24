@@ -30,8 +30,8 @@ source and local build instructions.
 
 | App | Package | ReVanced | Morphe | Reseam preview |
 | --- | --- | --- | --- | --- |
-| rif is fun | `com.andrewshu.android.reddit` | [12 patches](docs/revanced/rifisfun.md) | [12 patches](docs/morphe/rifisfun.md) | [11 patches](docs/reseam/rifisfun.md) |
-| Sync for Reddit | `com.laurencedawson.reddit_sync` | [15 patches](docs/revanced/syncforreddit.md) | [15 patches](docs/morphe/syncforreddit.md) | [14 patches](docs/reseam/syncforreddit.md) |
+| rif is fun | `com.andrewshu.android.reddit` | [12 patches](docs/revanced/rifisfun.md) | [12 patches](docs/morphe/rifisfun.md) | [12 patches](docs/reseam/rifisfun.md) |
+| Sync for Reddit | `com.laurencedawson.reddit_sync` | [15 patches](docs/revanced/syncforreddit.md) | [15 patches](docs/morphe/syncforreddit.md) | [15 patches](docs/reseam/syncforreddit.md) |
 
 Each link opens the app page for an edition with its patches, options, known issues and app versions. Each edition has
 its own code and patch list.

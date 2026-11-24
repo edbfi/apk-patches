@@ -11,6 +11,7 @@ tasks.processResources {
 }
 
 dependencies {
+    add("reseamExtensions", project(":shared:redgifs"))
     add("reseamExtensions", project(":shared:reddit-oauth"))
     add("reseamExtensions", project(":shared:imgur"))
     add("reseamExtensions", project(":shared:reddit-gallery"))

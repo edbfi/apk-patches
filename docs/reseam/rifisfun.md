@@ -17,6 +17,7 @@
 | Fix load more comments | Fixes "load more comments" not loading further comments. | On |
 | Fix markdown links | Shows markdown links that Reddit leaves as raw text, such as links to u/name, as links. | On |
 | Fix media links | Opens reddit.com/media links as the Reddit-hosted image they wrap. | On |
+| Fix Redgifs | Opens RedGIFs video links in the public embedded player inside rif’s browser. | On |
 | Fix YouTube player | Fixes the built-in YouTube player, which showed a black screen and error code 0. | On |
 | Hide retired service controls | Adds an ads-only checkbox and hides disabled Synccit and new-post notification settings, new subscriptions, and the remote theme catalog. | On |
 | Keep typed text in view | Keeps the line being typed in view when writing a long reply. | On |
@@ -63,3 +64,4 @@ then close and reopen rif.
 - **Some gallery images are skipped.** Reddit supplies neither the full image nor a usable preview for those items.
 - **Imgur uploads use the original proxy.** The album and cover patch leaves that upload path in place.
 - **Some YouTube videos cannot play in rif.** The video must be available and allow embedding.
+- **RedGIFs native playback and download options are unavailable for embedded videos.** The public player handles the media inside rif’s browser.
