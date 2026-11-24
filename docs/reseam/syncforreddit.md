@@ -62,9 +62,9 @@ Set all three patch-time options together for your own Reddit installed-app regi
 - `Redirect URI` is the exact registered HTTP(S) or app callback URI. Use a URI without a fragment.
 - `User-Agent` describes your app and identifies its operator.
 
-Leave all three blank to keep the app’s shipped OAuth configuration. If you change registrations, add your
-Reddit accounts again so they can obtain tokens for the new client. A cached guest token can stay in use
-until it expires. The patch preserves app settings.
+Leave all three blank to keep Sync’s shipped OAuth configuration. If you switch registrations, remove each
+existing account from Sync’s account picker before adding it again. Sync checks for duplicate account names,
+and the old tokens belong to the previous registration. A cached guest token can stay in use until it expires.
 Live Reddit sign-in and browsing with a custom registration still need verification.
 
 ## Known issues
