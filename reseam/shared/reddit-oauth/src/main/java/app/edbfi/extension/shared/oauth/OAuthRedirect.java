@@ -5,6 +5,9 @@ package app.edbfi.extension.shared.oauth;
 import app.reseam.runtime.Export;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public final class OAuthRedirect {
     private OAuthRedirect() {}
@@ -24,11 +27,13 @@ public final class OAuthRedirect {
 
             URI candidate = new URI(actual);
             int defaultPort = https ? 443 : 80;
+            String registeredPath = path(origin);
+            String actualPath = path(candidate);
             return origin.getScheme().equalsIgnoreCase(candidate.getScheme())
-                && origin.getHost() != null && origin.getHost().equalsIgnoreCase(candidate.getHost())
+                && sameHost(origin.getHost(), candidate.getHost())
                 && candidate.getRawUserInfo() == null
                 && port(origin, defaultPort) == port(candidate, defaultPort)
-                && path(origin).equals(path(candidate));
+                && (registeredPath.equals(actualPath) || browserPath(registeredPath).equals(actualPath));
         } catch (URISyntaxException ignored) {
             return false;
         }
@@ -47,9 +52,65 @@ public final class OAuthRedirect {
         return uri.getPort() == -1 ? defaultPort : uri.getPort();
     }
 
+    private static boolean sameHost(String registered, String actual) {
+        if (registered == null || actual == null) return false;
+        if (registered.equalsIgnoreCase(actual)) return true;
+        // URI has already validated the literals. Keep IPv4-mapped addresses in the IPv6 address space.
+        return registered.startsWith("[") && actual.startsWith("[")
+            && registered.indexOf('%') < 0 && actual.indexOf('%') < 0
+            && Arrays.equals(ipv6(registered), ipv6(actual));
+    }
+
+    private static int[] ipv6(String host) {
+        String address = host.substring(1, host.length() - 1);
+        int compressed = address.indexOf("::");
+        int[] groups = new int[8];
+        if (compressed < 0) {
+            readGroups(address, groups, false);
+        } else {
+            readGroups(address.substring(0, compressed), groups, false);
+            readGroups(address.substring(compressed + 2), groups, true);
+        }
+        return groups;
+    }
+
+    private static void readGroups(String address, int[] groups, boolean alignRight) {
+        if (address.isEmpty()) return;
+        String[] parts = address.split(":");
+        boolean ipv4Tail = parts[parts.length - 1].indexOf('.') >= 0;
+        int offset = alignRight ? groups.length - parts.length - (ipv4Tail ? 1 : 0) : 0;
+        for (int i = 0; i < parts.length - (ipv4Tail ? 1 : 0); i++) {
+            groups[offset + i] = Integer.parseInt(parts[i], 16);
+        }
+        if (ipv4Tail) {
+            String[] octets = parts[parts.length - 1].split("\\.");
+            groups[6] = Integer.parseInt(octets[0]) * 256 + Integer.parseInt(octets[1]);
+            groups[7] = Integer.parseInt(octets[2]) * 256 + Integer.parseInt(octets[3]);
+        }
+    }
+
     private static String path(URI uri) {
         String path = uri.getRawPath();
         return path == null || path.isEmpty() ? "/" : path;
+    }
+
+    private static String browserPath(String path) {
+        String[] segments = path.substring(1).split("/", -1);
+        List<String> result = new ArrayList<>();
+        for (int i = 0; i < segments.length; i++) {
+            String segment = segments[i];
+            boolean parent = segment.equals("..") || segment.equalsIgnoreCase(".%2e")
+                || segment.equalsIgnoreCase("%2e.") || segment.equalsIgnoreCase("%2e%2e");
+            if (parent || segment.equals(".") || segment.equalsIgnoreCase("%2e")) {
+                if (parent && !result.isEmpty()) result.remove(result.size() - 1);
+                if (i == segments.length - 1) result.add("");
+            } else {
+                result.add(segment);
+            }
+        }
+        StringBuilder normalized = new StringBuilder();
+        for (String segment : result) normalized.append('/').append(segment);
+        return normalized.toString();
     }
 
     @Export
@@ -68,7 +129,12 @@ public final class OAuthRedirect {
         int fixedQuery = redirect.indexOf('?');
         if (fixedQuery >= 0) {
             String prefix = redirect.substring(fixedQuery + 1) + "&";
-            if (!query.startsWith(prefix)) return false;
+            if (!query.startsWith(prefix)) {
+                String scheme = redirect.substring(0, redirect.indexOf(':'));
+                if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) return false;
+                prefix = prefix.replace("'", "%27");
+                if (!query.startsWith(prefix)) return false;
+            }
             query = query.substring(prefix.length());
         }
         boolean state = false;

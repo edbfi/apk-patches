@@ -21,6 +21,49 @@ public class OAuthRedirectTest {
     }
 
     @Test
+    public void comparesIpv6LiteralsWithoutChangingTheirAddressSpace() {
+        String expanded = "http://[0000:0000:0000:0000:0000:0000:0000:0001]:80/";
+        assertTrue(OAuthRedirect.matchesEndpoint("http://[::1]/", expanded));
+        assertFalse(OAuthRedirect.matchesEndpoint("http://[::2]/", expanded));
+        assertFalse(OAuthRedirect.matchesEndpoint("http://[::1]:81/", expanded));
+        assertFalse(OAuthRedirect.matchesEndpoint("http://localhost/", expanded));
+        assertTrue(OAuthRedirect.matchesEndpoint("https://[::ffff:c000:201]/", "https://[::FFFF:192.0.2.1]"));
+        assertFalse(OAuthRedirect.matchesEndpoint("https://192.0.2.1/", "https://[::ffff:192.0.2.1]"));
+        assertTrue(OAuthRedirect.matchesEndpoint("https://[2001:db8:0:1::a:b]/",
+            "https://[2001:0DB8:0:1:0:0:A:B]/"));
+    }
+
+    @Test
+    public void removesBrowserDotSegmentsWhilePreservingOtherPathBytes() {
+        String host = "https://callback.example";
+        String registered = host + "/keep//drop/.%2e/%2E/next%2Fleaf/.";
+        assertTrue(OAuthRedirect.matchesEndpoint(host + "/keep//next%2Fleaf/", registered));
+        assertFalse(OAuthRedirect.matchesEndpoint(host + "/keep/next%2Fleaf/", registered));
+        assertFalse(OAuthRedirect.matchesEndpoint(host + "/keep//next/leaf/", registered));
+        assertFalse(OAuthRedirect.matchesEndpoint(host + "/keep//next%2Fleaf", registered));
+        assertTrue(OAuthRedirect.matchesEndpoint(host + "/a/end", host + "/../a//%2e%2E/end"));
+        assertTrue(OAuthRedirect.matchesEndpoint(host + "/end", host + "/../end"));
+        assertTrue(OAuthRedirect.matchesEndpoint(host + "/a/", host + "/a/drop/%2e."));
+        assertTrue(OAuthRedirect.matchesEndpoint(host + "/x%2e", host + "/x%2e"));
+        assertFalse(OAuthRedirect.matchesEndpoint(host + "/x.", host + "/x%2e"));
+    }
+
+    @Test
+    public void recognizesApostrophesEncodedByHttpNavigationInTheFixedQuery() {
+        String registered = "HTTP://[0:0:0:0:0:0:0:1]:80/one/%2e%2E/return?q=it's%26ok&channel=a+b";
+        String endpoint = "http://[::1]/return";
+        String fields = "&state=s&code=c";
+        String actual = endpoint + "?q=it%27s%26ok&channel=a+b" + fields;
+        assertTrue(OAuthRedirect.matchesEndpoint(actual, registered));
+        assertTrue(OAuthRedirect.validResponse(actual, registered));
+        assertFalse(OAuthRedirect.validResponse(actual.replace("a+b", "a%20b"), registered));
+        assertFalse(OAuthRedirect.validResponse(actual.replace("q=it%27s%26ok&channel=a+b", "channel=a+b&q=it%27s%26ok"),
+            registered));
+        assertFalse(OAuthRedirect.validResponse(actual + "&state=duplicate", registered));
+        assertFalse(OAuthRedirect.validResponse(REDIRECT + "?q=it%27s" + fields, REDIRECT + "?q=it's"));
+    }
+
+    @Test
     public void rejectsOtherEndpoints() {
         String http = "https://callback.example/path";
         for (String other : new String[] {
