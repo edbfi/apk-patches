@@ -19,7 +19,11 @@ import app.reseam.patch.patch
 import app.reseam.patch.points
 import app.reseam.patch.replace
 
-private const val AUTHORIZE_PREFIX = "https://ssl.reddit.com/api/v1/authorize.compact?client_id="
+private const val STOCK_API = "https://ssl.reddit.com/api/v1"
+private const val REDDIT_API = "https://www.reddit.com/api/v1"
+private const val AUTHORIZE = "/authorize.compact?"
+private const val TOKEN = "/access_token"
+private const val AUTHORIZE_PREFIX = STOCK_API + AUTHORIZE + "client_id="
 private const val STOCK_REDIRECT = "http://redditsync/auth"
 private const val WEB_SETTINGS = "android.webkit.WebSettings"
 
@@ -35,6 +39,21 @@ private val authorize = method("Sync Reddit authorization URL") {
 
 private val authorizeClient = authorize.points("authorization client ID prefix") {
     stringContains(AUTHORIZE_PREFIX)
+}.single().captureAs("prefix", Type.String)
+
+private val loginProgress = method("Sync OAuth authorization page progress") {
+    inClass(klass("Sync OAuth WebChromeClient") {
+        sourceFile("OAuthLoginFragment.java")
+        extends("android.webkit.WebChromeClient")
+    })
+    name("onProgressChanged")
+    params("android.webkit.WebView", Type.Int)
+    returns(Type.Void)
+    strings(STOCK_API + AUTHORIZE)
+}
+
+private val loginPagePrefix = loginProgress.points("authorization page checked by the WebView") {
+    string(STOCK_API + AUTHORIZE)
 }.single().captureAs("prefix", Type.String)
 
 private val redirect = method("Sync Reddit redirect URI") {
@@ -117,7 +136,10 @@ private val exchangeCode = codeExchange.points("code appended to the OAuth form"
 }.single().captureArgumentAs("code", 1)
 
 private val userAgent = method("Sync Reddit User-Agent") {
-    inClass(klass("com.laurencedawson.reddit_sync.singleton.a"))
+    inClass(klass("Sync account singleton") {
+        sourceFile("AccountSingleton.java")
+        strings("Logged out")
+    })
     flags(AccessFlags.STATIC)
     params()
     returns(Type.String)
@@ -169,12 +191,24 @@ val spoofClient = patch(SyncPatchStrings.spoofClient) {
         check(headers.size == 4 && forms.size == 4 && headers.map { it.owner }.toSet() == forms.map { it.owner }.toSet()) {
             "Expected shared Sync OAuth headers for code exchange, guest and both refresh forms."
         }
+        val tokenUrls = forms.map { form ->
+            val constructor = method("Sync token request constructor for ${form.owner}") {
+                inClass(klass(form.owner))
+                name("<init>")
+                strings(STOCK_API + TOKEN)
+            }
+            constructor.points("token endpoint in ${form.owner}") {
+                string(STOCK_API + TOKEN)
+            }.single().captureAs("url", Type.String).also { it.instruction }
+        }
+        loginPagePrefix.instruction
         userAgent.method
         webSettings.instruction
 
-        authorizeClient.after {
-            capture("prefix").assign(string(AUTHORIZE_PREFIX + config.clientId + "&response_type=code&state="))
-        }
+        val configuredPrefix = REDDIT_API + AUTHORIZE + "client_id=" + config.clientId + "&response_type=code&state="
+        authorizeClient.after { capture("prefix").assign(string(configuredPrefix)) }
+        loginPagePrefix.after { capture("prefix").assign(string(REDDIT_API + AUTHORIZE)) }
+        tokenUrls.forEach { point -> point.after { capture("url").assign(string(REDDIT_API + TOKEN)) } }
         authorizeRedirect.after { capture("redirect").assign(string(config.encodedRedirect)) }
         exchangeCode.before {
             val encoded = callStatic("java.net.URLEncoder", "encode", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;",
