@@ -109,13 +109,13 @@ internal fun PatchRuntime.prepareAdDisplaySetting(): () -> Unit {
         strings(PAID_PACKAGE)
         calls(adsEnabled)
         calls(cardsEnabled)
-    }.all.also { check(it.size == 5) }
+    }.all.also { check(it.size == 5) { "Expected 5 Cards selectors and bindings, found ${it.size}" } }
     val albumMethods = methods("Route a link to the native album viewer") {
         params("android.net.Uri")
         returns(Type.Boolean)
         strings(PAID_PACKAGE)
         calls(adsEnabled)
-    }.all.also { check(it.size == 3) }
+    }.all.also { check(it.size == 3) { "Expected 3 native album routers, found ${it.size}" } }
     val moderatorStore = method("Find moderated subreddits") { strings("moderator=1") }
     val moderator = method("Allow local moderator tools") {
         inClass(klass(moderatorStore.owner))
@@ -147,7 +147,7 @@ internal fun PatchRuntime.prepareAdDisplaySetting(): () -> Unit {
         strings(PAID_PACKAGE)
         calls(adsEnabled)
         calls(folder)
-    }.all.also { check(it.size == 6) }
+    }.all.also { check(it.size == 6) { "Expected 6 developer-folder theme readers, found ${it.size}" } }
     val applyTheme = method("Apply theme manifest") { strings(PAID_PACKAGE, "ThemeManifest.version") }
     val selectTheme = method("Update local theme selection") {
         inClass(klass(SHOP))
@@ -168,7 +168,7 @@ internal fun PatchRuntime.prepareAdDisplaySetting(): () -> Unit {
         methods("Ad loading helpers named $methodName") {
             name(methodName)
             calls(adsEnabled)
-        }.all.also { check(it.size == 2) }
+        }.all.also { check(it.size == 2) { "Expected 2 ad helpers named $methodName, found ${it.size}" } }
     }
     val feedLoader = method("Load rif feed from its URI") { strings("Loading things list uri %s") }
     val premiumRefresh = method("Check Premium status for feed ad blocking") {
@@ -198,7 +198,7 @@ internal fun PatchRuntime.prepareAdDisplaySetting(): () -> Unit {
     val cardOptions = methods("Enable individual Cards options") {
         inClass(klass(RIF + "settings.AppearanceSettingsFragment"))
         strings(ADS)
-    }.all.also { check(it.size == 2) }.map { target ->
+    }.all.also { check(it.size == 2) { "Expected 2 Cards option readers, found ${it.size}" } }.map { target ->
         target.points("Read the combined preference for Cards options") {
             invokeInterface { owner(PREFS); name("getBoolean"); params(Type.String, Type.Boolean) }
             then { opcode(Opcode.MOVE_RESULT) }
@@ -206,12 +206,16 @@ internal fun PatchRuntime.prepareAdDisplaySetting(): () -> Unit {
     }
 
     stockPreferenceScreen(PREFERENCE_SCREEN).use { screen ->
-        check(screen.root.tag == "PreferenceScreen")
+        check(screen.root.tag == "PreferenceScreen") {
+            "Expected PreferenceScreen at the root of $PREFERENCE_SCREEN, found ${screen.root.tag}"
+        }
         screen.requirePreference(ADS, "CheckBoxPreference")
-        check(screen.findByAttribute("android:key", SHOW_ADS).isEmpty())
+        val existing = screen.findByAttribute("android:key", SHOW_ADS)
+        check(existing.isEmpty()) { "Expected no $SHOW_ADS preference in $PREFERENCE_SCREEN, found ${existing.size}" }
         listOf("GOLD_BLOCK_ADS", "MODERATOR_ENABLED").forEach { key ->
             val row = screen.requirePreference(key, RIF + "settings.CheckIfEnabledCheckBoxPreference")
-            check(row["android:dependency"] == ADS)
+            val dependency = row["android:dependency"]
+            check(dependency == ADS) { "Expected $key to depend on $ADS in $PREFERENCE_SCREEN, found $dependency" }
         }
     }
     val strings = checkNotNull(RifPatchStrings::class.java.getResourceAsStream("/edbfi/rifisfun/strings.xml"))
