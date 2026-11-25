@@ -3,6 +3,7 @@
 package app.edbfi.patches.syncforreddit.media.imgur
 
 import app.edbfi.extension.shared.imgur.bindings.Imgur
+import app.edbfi.extension.syncforreddit.imgur.bindings.AlbumRequests
 import app.edbfi.patches.syncforreddit.SyncPatchStrings
 import app.edbfi.patches.syncforreddit.layout.glideImageRequestUrl
 import app.edbfi.patches.syncforreddit.layout.thumbnails.postThumbnail
@@ -16,6 +17,7 @@ import app.reseam.patch.dex.invokeRegisters
 import app.reseam.patch.dex.opcode
 import app.reseam.patch.dex.regA
 import app.reseam.patch.dex.stringValue
+import app.reseam.patch.field
 import app.reseam.patch.klass
 import app.reseam.patch.method
 import app.reseam.patch.patch
@@ -59,6 +61,38 @@ private val uploadConstructor = method("Imgur upload proxy request constructor")
     name("<init>")
     strings(UPLOAD_PROXY)
 }
+
+private const val REQUEST = "com.android.volley.Request"
+private const val QUEUE = "com.android.volley.RequestQueue"
+private const val ERROR = "com.android.volley.VolleyError"
+private const val RESPONSE = "com.android.volley.NetworkResponse"
+
+private val parseAlbumError = album.method("parseNetworkError") {
+    params(ERROR)
+    returns(ERROR)
+    strings("Unable to find an album with the id")
+}
+private val performRequest = klass("com.android.volley.toolbox.BasicNetwork").method("performRequest") {
+    params(REQUEST)
+    returns(RESPONSE)
+}
+private val createCall = performRequest.points("Create the cancellable Volley HTTP call") {
+    invokeVirtual { owner("okhttp3.OkHttpClient"); name("newCall"); params("okhttp3.Request"); returns("okhttp3.Call") }
+}.single().captureArgumentAs("client", 0)
+
+private val uploadManager = klass("Imgur upload dispatcher") { sourceFile("UploadManager.java") }
+private val dispatchUpload = method("Queue the editor attachment for upload") {
+    inClass(uploadManager)
+    flags(AccessFlags.STATIC)
+    params("android.content.Context", "android.net.Uri", "com.android.volley.Response\$Listener",
+        "com.android.volley.Response\$ErrorListener")
+    returns(Type.Void)
+    calls(uploadConstructor)
+    calls { owner(QUEUE); name("add"); params(REQUEST); returns(REQUEST) }
+}
+private val uploadQueue = dispatchUpload.field("Sync request queue") { type("Lcom/android/volley/RequestQueue;") }
+private val setShouldCache = klass(REQUEST).method("setShouldCache") { params(Type.Boolean); returns(REQUEST) }
+private val enqueue = klass(QUEUE).method("add") { params(REQUEST); returns(REQUEST) }
 
 private val commentPreview = method("Imgur comment cover model") {
     strings(COVER_PROXY, "EfficientImageSpan")
@@ -133,6 +167,17 @@ val fixImgur = patch(SyncPatchStrings.fixImgur) {
             }.also { it.method }
         }
         val uploadMethod = uploadConstructor.method
+        createCall.index
+        AlbumRequests.forMetadata.target.method
+        val albumType = album.descriptor
+        val imageType = image.descriptor
+        val uploadType = uploadConstructor.owner
+        val uploadProto = uploadMethod.proto
+        dispatchUpload.method
+        uploadQueue.ref
+        setShouldCache.method
+        enqueue.method
+        parseAlbumError.method
         val commentMethod = commentPreview.method
         check(uploadMethod.instructions.count { it.stringValue == UPLOAD_PROXY } == 1)
         check(commentMethod.instructions.count { it.stringValue == COVER_PROXY } == 1)
@@ -164,6 +209,22 @@ val fixImgur = patch(SyncPatchStrings.fixImgur) {
             }
         }
         uploadMethod.replaceAllStrings(UPLOAD_PROXY, "https://api.imgur.com/3/image")
+        createCall.before {
+            val client = capture("client")
+            whenInstanceOf(param(0), albumType) { client.assign(AlbumRequests.forMetadata(client)) } otherwise {
+                whenInstanceOf(param(0), imageType) { client.assign(AlbumRequests.forMetadata(client)) }
+            }
+        }
+        // The transport has already retried a missing album. Both viewer listeners treat
+        // ordinary errors as a failed load and the stock English-text signal as another retry.
+        parseAlbumError.replace { returnValue(param(0)) }
+        // The retired availability request wraps the real upload. Queue the editor's request directly.
+        dispatchUpload.replace {
+            val attachment = newInstance(uploadType, uploadProto, param(0), param(1), param(2), param(3))
+            attachment.call(setShouldCache, bool(false))
+            staticField(uploadQueue).call(enqueue, attachment)
+            returnVoid()
+        }
         // Keep Sync's stock ID extraction as the fallback for older link shapes.
         commentAlbumId.before { local(cleanedLink).assign(capture("cleanedLink")) }
         commentCoverModel.after {

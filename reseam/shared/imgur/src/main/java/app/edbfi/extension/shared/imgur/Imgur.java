@@ -127,37 +127,65 @@ public final class Imgur {
         if (parsed == null || !isAlbumPath(parsed.getRawPath())) {
             return url;
         }
-        String cover = coverUrl(Uri.parse(url), parsed.getRawPath().startsWith("/gallery/"), clientId);
+        String cover = coverUrl(url, parsed.getRawPath().startsWith("/gallery/"), clientId, true);
         return cover != null ? cover : url;
     }
 
     @Export
     public static String coverUrl(Uri page, boolean gallery, String clientId) {
-        String albumId = id(page.toString());
+        return coverUrl(page.toString(), gallery, clientId, false);
+    }
+
+    private static String coverUrl(String page, boolean gallery, String clientId, boolean retryImage) {
+        String albumId = id(page);
         if (albumId.isEmpty()) {
             return null;
         }
         try {
-            HttpsURLConnection request = (HttpsURLConnection) new URL(albumEndpoint(albumId, gallery)).openConnection();
-            try {
-                // Credentials are scoped to the API host, including on redirects.
-                request.setInstanceFollowRedirects(false);
-                request.setConnectTimeout(4000);
-                request.setReadTimeout(4000);
-                request.setRequestProperty("Authorization", "Client-ID " + clientId);
-                request.setRequestProperty("Accept", "application/json");
-                if (request.getResponseCode() != 200) {
-                    return null;
+            String album = readMetadata(albumEndpoint(albumId, gallery), clientId);
+            if (album != null) {
+                return coverFromJson(album);
+            }
+            if (retryImage) {
+                String image = readMetadata(API + "image/" + albumId, clientId);
+                if (image != null) {
+                    return imageCoverFromJson(image);
                 }
-                try (InputStream body = request.getInputStream()) {
-                    return coverFromJson(readResponse(body));
-                }
-            } finally {
-                request.disconnect();
             }
         } catch (IOException | JSONException ignored) {
-            return null;
+            // The original Glide model remains available when metadata cannot be resolved.
         }
+        return null;
+    }
+
+    // Only a missing album can be a gallery submission containing a single image.
+    private static String readMetadata(String url, String clientId) throws IOException {
+        HttpsURLConnection request = (HttpsURLConnection) new URL(url).openConnection();
+        try {
+            request.setInstanceFollowRedirects(false);
+            request.setConnectTimeout(4000);
+            request.setReadTimeout(4000);
+            request.setRequestProperty("Authorization", "Client-ID " + clientId);
+            request.setRequestProperty("Accept", "application/json");
+            int status = request.getResponseCode();
+            if (status == 404) {
+                return null;
+            }
+            if (status != 200) {
+                throw new IOException("Imgur metadata returned HTTP " + status);
+            }
+            try (InputStream body = request.getInputStream()) {
+                return readResponse(body);
+            }
+        } finally {
+            request.disconnect();
+        }
+    }
+
+    static String imageCoverFromJson(String json) throws JSONException {
+        JSONObject data = new JSONObject(json).optJSONObject("data");
+        Object id = data == null ? null : data.opt("id");
+        return id instanceof String && isId((String) id) ? "https://i.imgur.com/" + id + "m.jpg" : null;
     }
 
     static String coverFromJson(String json) throws JSONException {

@@ -57,7 +57,8 @@ original text. If Sync cannot identify the language of a single item, choose its
 ### Fix Imgur
 
 `Imgur client ID` identifies an Imgur application you are authorized to use. Reseam stores the ID in the
-patched APK so the app can request albums and covers. This option has no preset ID.
+patched APK for viewing albums, fetching covers and uploading editor attachments. A gallery link to a
+single image opens in the native viewer. Each upload returns its own link for insertion into the draft.
 
 ### Spoof client
 

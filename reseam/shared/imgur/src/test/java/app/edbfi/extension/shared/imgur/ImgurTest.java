@@ -19,6 +19,14 @@ public final class ImgurTest {
     }
 
     @Test
+    public void singleImageCoverUsesTheReturnedImageId() {
+        assertEquals("https://i.imgur.com/Real123m.jpg", Imgur.imageCoverFromJson("{\"data\":{\"id\":\"Real123\"}}"));
+        assertNull(Imgur.imageCoverFromJson("{\"data\":{\"id\":123}}"));
+        assertNull(Imgur.imageCoverFromJson("{\"data\":{\"id\":\"bad/id\"}}"));
+        assertNull(Imgur.imageCoverFromJson("{\"data\":{}}"));
+    }
+
+    @Test
     public void mapsTitledAlbumsAndDirectImagesToApiRoutes() {
         assertEquals("https://imgur.com/a/AbCd123", Imgur.normalizeAlbumLink("https://imgur.com/a/album-title-AbCd123"));
         assertEquals("https://api.imgur.com/3/gallery/album/AbCd123",
