@@ -19,7 +19,7 @@
 | Fix media links | Opens reddit.com/media links as the Reddit-hosted image they wrap. | On |
 | Fix Redgifs | Opens RedGIFs video links in the public embedded player inside rif’s browser. | On |
 | Fix YouTube player | Fixes the built-in YouTube player, which showed a black screen and error code 0. | On |
-| Hide retired service controls | Adds an ads-only checkbox and hides disabled Synccit and new-post notification settings, new subscriptions, and the remote theme catalog. | On |
+| Hide retired service controls | Makes the ads checkbox control ad placement independently of Cards, native albums and folder themes. Hides disabled Synccit and new-post notification settings, new subscriptions, and the remote theme catalog. | On |
 | Keep typed text in view | Keeps the line being typed in view when writing a long reply. | On |
 | Spoof client | Uses your own Reddit OAuth registration when all three options are set. Leaves the app’s configuration in place when they are blank. | On |
 
@@ -46,20 +46,20 @@ Live Reddit sign-in and browsing with a custom registration still need verificat
 ## Ad display
 
 With **Hide retired service controls** applied, use **Settings → General settings → Show ads** to
-control ad placements. Restart rif to refresh open screens. Leave **Ads & pro features** enabled to
-keep access to Cards, native albums and custom themes. **Disable ads** takes precedence over
+control feed, banner and native album ads. Cards, native albums and folder themes keep their settings
+when you turn ads off. Restart rif to refresh open screens. **Disable ads** takes precedence over
 **Show ads** and also disables ad consent and SDK startup.
 
 ## Local themes
 
-On standard rif, enable **Ads & pro features** in **Settings → General settings**. In **Theme**, turn on
+With **Hide retired service controls** applied, open **Theme**, turn on
 **Enable developer mode** and tap **Select theme directory**. Open the folder containing the theme’s
 `manifest.json`, then tap **Use this folder → Allow**. After editing the files, choose **Reload files**,
-then close and reopen rif.
+then close and reopen rif. An active folder theme uses rif’s list layout. Turn off developer mode
+to see the saved Cards layout with a built-in theme.
 
 ## Known issues
 
-- **Turning off Ads & pro features can also disable cards, viewers and local themes.** Standard rif still uses its original access and purchase rules.
 - **Previously enabled Synccit and notification settings can still appear.** The patch preserves rif’s opt-out controls and their availability rules.
 - **Some gallery images are skipped.** Reddit supplies neither the full image nor a usable preview for those items.
 - **Imgur uploads use the original proxy.** The album and cover patch leaves that upload path in place.

@@ -4,10 +4,17 @@ package app.edbfi.patches.rifisfun.misc.goldenplatinum
 
 import app.edbfi.patches.rifisfun.RifPatchStrings
 import app.edbfi.patches.rifisfun.ads.disable.screenTransition
-import app.reseam.patch.CodeScope
+import app.edbfi.extension.rifisfun.settings.bindings.AdSettings
+import app.reseam.patch.MethodTarget
 import app.reseam.patch.PatchRuntime
 import app.reseam.patch.Type
+import app.reseam.patch.after
 import app.reseam.patch.before
+import app.reseam.patch.dex.Opcode
+import app.reseam.patch.dex.literal
+import app.reseam.patch.dex.opcode
+import app.reseam.patch.methods
+import app.reseam.patch.points
 import app.reseam.patch.dex.AccessFlags
 import app.reseam.patch.klass
 import app.reseam.patch.method
@@ -47,13 +54,6 @@ private val showBanner = method("allow a banner below the thread list") {
     returns(Type.Boolean)
 }
 
-private val loadFeedAds = method("load ads for the thread feed") {
-    inClass(klass(RIF + "ads.AdViewHelper"))
-    name("checkConditionsAndLoadInitialAds")
-    params()
-    returns(Type.Void)
-}
-
 private val wrapAlbumAdapter = method("add ad rows to an image album") {
     inClass(klass(RIF + "ads.ImageAlbumAdViewHelper"))
     name("newRecyclerAdapter")
@@ -61,27 +61,157 @@ private val wrapAlbumAdapter = method("add ad rows to an image album") {
     returns(RECYCLER_ADAPTER)
 }
 
-// RifBaseSettingsFragment.F4() selects the "settings" preference file in rif 5.6.22.
-private fun CodeScope.showAds() =
-    call(applicationContext)
-        .callVirtual("android.content.Context", "getSharedPreferences",
-            "(Ljava/lang/String;I)Landroid/content/SharedPreferences;", string("settings"), int(0))
-        .callInterface("android.content.SharedPreferences", "getBoolean",
-            "(Ljava/lang/String;Z)Z", string(SHOW_ADS), bool(true))
+private const val ADS = "ADS_ENABLED"
+private const val PAID_PACKAGE = "com.andrewshu.android.redditdonation"
+private const val PREFS = "android.content.SharedPreferences"
+private const val SHOP = RIF + "theme.shop.ThemeShopActivity"
+
+private fun savedBoolean(key: String) = method("Save rif's $key preference") {
+    params("$PREFS\$Editor")
+    strings(key)
+}.points("Read the setting stored under $key") {
+    string(key)
+    then { invokeVirtual { params(); returns(Type.Boolean) } }
+}.single().callee()
+
+private val adsEnabled = savedBoolean(ADS)
+private val cardsEnabled = savedBoolean("THREADS_CARDS")
+private val developerMode = savedBoolean("THEME_DEVELOPER")
+private val folder = method("Save developer theme directory") {
+    params("$PREFS\$Editor")
+    strings("DEVELOPER_THEME_URI")
+}.points("Read the theme URI before serializing it") {
+    invokeVirtual { owner(adsEnabled.owner); params(); returns("android.net.Uri") }
+    then { opcode(Opcode.MOVE_RESULT_OBJECT) }
+    then { invokeVirtual { owner("android.net.Uri"); name("toString") } }
+}.single().previous { invokeVirtual { owner(adsEnabled.owner); params(); returns("android.net.Uri") } }.callee()
+
+private val readAdsPreference = method("Load stock ad preference") {
+    inClass(klass(adsEnabled.owner))
+    params(PREFS)
+    strings(ADS)
+}
+
+private fun MethodTarget.adResult() = points("Read ad eligibility in ${descriptor}") {
+    calls(adsEnabled)
+    then { opcode(Opcode.MOVE_RESULT) }
+}.single().captureAs("enabled", Type.Boolean).also { it.index }
 
 internal fun PatchRuntime.prepareAdDisplaySetting(): () -> Unit {
     applicationContext.method
-    insertFeedAd.method
-    showBanner.method
-    loadFeedAds.method
+    readAdsPreference.method
     wrapAlbumAdapter.method
+    AdSettings.migrate.target.method
+    AdSettings.showAds.target.method
+    AdSettings.settingsRequiringAds.target.method
+
+    val cardMethods = methods("Select Cards or bind Cards controls") {
+        strings(PAID_PACKAGE)
+        calls(adsEnabled)
+        calls(cardsEnabled)
+    }.all.also { check(it.size == 5) }
+    val albumMethods = methods("Route a link to the native album viewer") {
+        params("android.net.Uri")
+        returns(Type.Boolean)
+        strings(PAID_PACKAGE)
+        calls(adsEnabled)
+    }.all.also { check(it.size == 3) }
+    val moderatorStore = method("Find moderated subreddits") { strings("moderator=1") }
+    val moderator = method("Allow local moderator tools") {
+        inClass(klass(moderatorStore.owner))
+        strings(PAID_PACKAGE)
+        calls(adsEnabled)
+    }
+    val tablet = method("Choose a two-pane layout for the current configuration") {
+        strings(PAID_PACKAGE)
+        params()
+        returns(Type.Boolean)
+        calls(adsEnabled)
+        calls { owner("android.content.res.Resources"); name("getConfiguration") }
+    }
+    val visitedEndpoint = method("Reddit Premium visited-link endpoint") {
+        name("<clinit>")
+        strings("store_visits")
+        calls { owner("android.net.Uri"); name("withAppendedPath") }
+    }
+    val visited = method("Allow Reddit history sync for an eligible account") {
+        inClass(klass(visitedEndpoint.owner))
+        strings(PAID_PACKAGE)
+        calls(adsEnabled)
+    }
+    val localGates = (cardMethods + albumMethods + moderator + tablet + visited).map { it.adResult() }
+
+    // Only a selected developer folder supplies extra theme files. Keep downloaded themes
+    // on their original path when the user has no folder selected.
+    val themeReaders = methods("Read developer-folder styles and templates") {
+        strings(PAID_PACKAGE)
+        calls(adsEnabled)
+        calls(folder)
+    }.all.also { check(it.size == 6) }
+    val applyTheme = method("Apply theme manifest") { strings(PAID_PACKAGE, "ThemeManifest.version") }
+    val selectTheme = method("Update local theme selection") {
+        inClass(klass(SHOP))
+        strings(PAID_PACKAGE)
+        calls { owner("android.widget.TextView"); name("setCompoundDrawablesWithIntrinsicBounds") }
+    }
+    val settings = method("Access rif's current settings") {
+        inClass(klass(adsEnabled.owner))
+        flags(AccessFlags.STATIC)
+        params()
+        returns(adsEnabled.owner)
+    }
+    settings.method
+    developerMode.method
+    val folderGates = (themeReaders + applyTheme + selectTheme).map { it.adResult() }
+
+    val adMethods = listOf("initLoadAdsIfNeeded", "isAdsEnabledAndUnblocked").flatMap { methodName ->
+        methods("Ad loading helpers named $methodName") {
+            name(methodName)
+            calls(adsEnabled)
+        }.all.also { check(it.size == 2) }
+    }
+    val feedLoader = method("Load rif feed from its URI") { strings("Loading things list uri %s") }
+    val premiumRefresh = method("Check Premium status for feed ad blocking") {
+        inClass(klass(feedLoader.owner))
+        params()
+        returns(Type.Boolean)
+        calls(adsEnabled)
+    }
+    val placementGates = (adMethods + premiumRefresh + listOf(insertFeedAd, showBanner).filter { target ->
+        val instructions = target.method.instructions
+        // Disable ads may already have replaced these two methods with return false.
+        !(instructions.size == 2 && instructions.first().opcode == Opcode.CONST_4 &&
+            instructions.last().opcode == Opcode.RETURN && instructions.first().literal == 0L)
+    }).map { it.adResult() }
+    val albumAds = klass(RIF + "ads.ImageAlbumAdViewHelper").method("isAdsEnabledAndUnblocked") {
+        params(); returns(Type.Boolean); calls(adsEnabled)
+    }
+    albumAds.method
+
+    val greyOut = method("Disable preferences that require the stock combined switch") {
+        inClass(klass(RIF + "settings.RifBaseSettingsFragment"))
+        strings(ADS)
+    }.points("Iterate the settings disabled when stock ads are off") {
+        invokeInterface { owner("java.util.Set"); name("iterator") }
+    }.single().captureArgumentAs("keys", 0)
+    greyOut.index
+    val cardOptions = methods("Enable individual Cards options") {
+        inClass(klass(RIF + "settings.AppearanceSettingsFragment"))
+        strings(ADS)
+    }.all.also { check(it.size == 2) }.map { target ->
+        target.points("Read the combined preference for Cards options") {
+            invokeInterface { owner(PREFS); name("getBoolean"); params(Type.String, Type.Boolean) }
+            then { opcode(Opcode.MOVE_RESULT) }
+        }.single().captureAs("enabled", Type.Boolean).also { it.index }
+    }
+
     stockPreferenceScreen(PREFERENCE_SCREEN).use { screen ->
-        check(screen.root.tag == "PreferenceScreen") {
-            "Expected PreferenceScreen at the root of $PREFERENCE_SCREEN, found ${screen.root.tag}"
-        }
-        screen.requirePreference("ADS_ENABLED", "CheckBoxPreference")
-        check(screen.findByAttribute("android:key", SHOW_ADS).isEmpty()) {
-            "Unexpected existing preference with android:key=$SHOW_ADS in $PREFERENCE_SCREEN"
+        check(screen.root.tag == "PreferenceScreen")
+        screen.requirePreference(ADS, "CheckBoxPreference")
+        check(screen.findByAttribute("android:key", SHOW_ADS).isEmpty())
+        listOf("GOLD_BLOCK_ADS", "MODERATOR_ENABLED").forEach { key ->
+            val row = screen.requirePreference(key, RIF + "settings.CheckIfEnabledCheckBoxPreference")
+            check(row["android:dependency"] == ADS)
         }
     }
     val strings = checkNotNull(RifPatchStrings::class.java.getResourceAsStream("/edbfi/rifisfun/strings.xml"))
@@ -90,22 +220,36 @@ internal fun PatchRuntime.prepareAdDisplaySetting(): () -> Unit {
         .associate { it.getAttribute("name") to it.textContent }
     val title = labels.getValue(RifPatchStrings.showAds.name)
     val summary = labels.getValue(RifPatchStrings.showAdsSummary.name)
-
+    val summaries = listOf("pref_threads_cards_summary", "pref_native_image_albums_summary",
+        "pref_dualpane_summary", "pref_moderator_enabled_summary", "pref_reddit_visited_enabled_summary").associateWith { key ->
+        checkNotNull(resources.getString(key)).also { check(it.startsWith("Requires ads enabled")) }
+            .removePrefix("Requires ads enabled").trimStart('.', ' ')
+    }
     return {
         val titleId = checkNotNull(resources.addString(SHOW_ADS, title))
         val summaryId = checkNotNull(resources.addString("${SHOW_ADS}_summary", summary))
+        summaries.forEach { (key, value) -> check(resources.setString(key, value)) }
         stockPreferenceScreen(PREFERENCE_SCREEN).use { screen ->
-            val checkbox = screen.createElement("CheckBoxPreference")
+            val checkbox = screen.requirePreference(ADS, "CheckBoxPreference")
             checkbox["android:key"] = SHOW_ADS
             checkbox.setResourceRef("android:title", titleId)
             checkbox.setResourceRef("android:summary", summaryId)
-            checkbox.setBool("android:defaultValue", true)
-            screen.root.appendChild(checkbox)
+            screen.requirePreference("GOLD_BLOCK_ADS", RIF + "settings.CheckIfEnabledCheckBoxPreference")["android:dependency"] = SHOW_ADS
+            screen.requirePreference("MODERATOR_ENABLED", RIF + "settings.CheckIfEnabledCheckBoxPreference").removeAttribute("android:dependency")
         }
-        insertFeedAd.before { whenFalse(showAds()) { returnValue(bool(false)) } }
-        showBanner.before { whenFalse(showAds()) { returnValue(bool(false)) } }
-        loadFeedAds.before { whenFalse(showAds()) { returnVoid() } }
-        // The stock helper accepts its original adapter in its position and lifecycle methods.
-        wrapAlbumAdapter.before { whenFalse(showAds()) { returnValue(param(1)) } }
+        readAdsPreference.before { AdSettings.migrate(param(0)) }
+        localGates.forEach { it.after { capture("enabled").assign(bool(true)) } }
+        folderGates.forEach { point ->
+            point.after {
+                val current = call(settings)
+                whenTrue(current.call(developerMode)) {
+                    whenNotNull(current.call(folder)) { capture("enabled").assign(bool(true)) }
+                }
+            }
+        }
+        greyOut.before { val keys = capture("keys"); keys.assign(AdSettings.settingsRequiringAds(keys)) }
+        cardOptions.forEach { it.after { capture("enabled").assign(bool(true)) } }
+        placementGates.forEach { it.after { capture("enabled").assign(AdSettings.showAds(call(applicationContext))) } }
+        wrapAlbumAdapter.before { whenFalse(thisObject.call(albumAds)) { returnValue(param(1)) } }
     }
 }

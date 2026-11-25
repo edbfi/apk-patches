@@ -24,7 +24,7 @@
     <string name="imgur_client_id">Imgur client ID</string>
     <string name="imgur_client_id_description">Overrides the Imgur registration bundled with this app. Use a client ID you are authorized to use.</string>
     <string name="hide_retired_service_controls">Hide retired service controls</string>
-    <string name="hide_retired_service_controls_description">Adds an ads-only checkbox and hides disabled Synccit and new-post notification settings, new subscriptions, and the remote theme catalog.</string>
+    <string name="hide_retired_service_controls_description">Makes the ads checkbox control ad placement independently of Cards, native albums and folder themes. Hides disabled Synccit and new-post notification settings, new subscriptions, and the remote theme catalog.</string>
     <string name="show_ads">Show ads</string>
     <string name="show_ads_summary">Shows ads in feeds and image albums when rif allows them. Restart rif to refresh open screens.</string>
     <string name="spoof_client">Spoof client</string>
