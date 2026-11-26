@@ -85,10 +85,9 @@ All trees follow the naming and matching rules. Use the Reseam section for its l
   checkout's ignored `.rea/install/`, shared by every worktree. `just setup-rea` installs the current checkout's
   pin (`.rea/package.json`) there, fetches its JADX bridge, re-syncs `.agents/skills/reverse-engineer-anything`
   from the installed package, and checks Ghidra and JADX.
-- Machine tools: Homebrew `openjdk@25` and `apktool`, and `adb`. rea verifies its Ghidra bridge against 12.1.4
-  only and runs later 12.x, such as Homebrew's 12.2, unverified, so Ghidra 12.1.4 comes from NSA's release zip into
-  `~/.local/opt/ghidra_12.1.4_PUBLIC` (or set `GHIDRA_INSTALL_DIR`); on arm64, build its decompiler with
-  `support/gradle/gradlew buildNatives`.
+- Machine tools: Homebrew `openjdk@25`, Ghidra 12.2 or later, `apktool`, and `adb`. `scripts/rea.sh` prefers a
+  Homebrew Ghidra installation and accepts an official release extracted under `~/.local/opt` through
+  `GHIDRA_INSTALL_DIR`; on arm64, build its decompiler with `support/gradle/gradlew buildNatives`.
 - On arm64 Linux, x86_64 Android tools such as aapt2 run through `qemu-user-binfmt` with `libc6-amd64-cross`.
 - Bump rea by hand: change `.rea/package.json`, refresh the lock with
   `npm install --package-lock-only --prefix .rea`, run `just setup-rea`, and commit the skill changes with it.
