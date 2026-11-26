@@ -40,16 +40,6 @@ if [ -z "${GHIDRA_INSTALL_DIR-}" ]; then
     done
 fi
 
-# Fall back to an official release extracted under ~/.local/opt.
-if [ -z "${GHIDRA_INSTALL_DIR-}" ]; then
-    for dir in "$HOME"/.local/opt/ghidra_*_PUBLIC; do
-        if [ -f "$dir/Ghidra/application.properties" ]; then
-            GHIDRA_INSTALL_DIR=$dir
-            break
-        fi
-    done
-fi
-
 REA_JADX_MCP_JAR=$rea/jadx-headless-mcp-0.7.1-all.jar
 export PATH JAVA_HOME GHIDRA_INSTALL_DIR REA_JADX_MCP_JAR
 [ $# -gt 0 ] || set -- mcp
